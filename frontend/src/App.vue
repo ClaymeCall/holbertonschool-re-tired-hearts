@@ -1,11 +1,11 @@
-<script setup>
-import { ref } from 'vue'
-
-const message = ref('Re-Tired Hearts')
-</script>
-
 <template>
-  <main class="flex min-h-screen items-center justify-center bg-slate-900 text-white">
-    <h1 class="text-4xl font-bold">{{ message }}</h1>
+  <a
+    href="#main"
+    class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-slate-900"
+  >
+    Aller au contenu principal
+  </a>
+  <main id="main" class="bg-slate-50">
+    <router-view />
   </main>
 </template>
