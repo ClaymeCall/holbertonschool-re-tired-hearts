@@ -51,10 +51,10 @@ Errors use the NestJS shape `{ "statusCode": 409, "message": "…", "error": "Co
 | `GET /v1/profiles` (discovery, approved only) | member | 200 | 401, 403 |
 | `GET /v1/profiles/:id` | member | 200 | 401, 404 |
 | `GET /v1/events?interest=&location=&page=&limit=` | member | 200 (paginated) | 400, 401 |
-| `GET /v1/events/:id` | member (draft: owner or admin) | 200 | 401, 404 |
+| `GET /v1/events/:id` | member (`draft`: owner or admin · `cancelled`/`completed`: owner, registered participant, or admin) | 200 | 401, 404 |
 | `POST /v1/events` | approved member | 201 | 400, 401, 403 |
-| `PATCH /v1/events/:id` | owner or admin | 200 | 400, 403, 404, 409 (capacity below registered count) |
-| `POST /v1/events/:id/cancel` · `/complete` | owner or admin (cancel) · owner (complete) | 200 | 403, 404, 409 |
+| `PATCH /v1/events/:id` | owner | 200 | 400, 403, 404, 409 (capacity below registered count) |
+| `POST /v1/events/:id/cancel` · `/complete` | owner | 200 | 403, 404, 409 |
 | `DELETE /v1/events/:id` | owner (draft without registrations only) | 204 | 403, 404, 409 |
 | `POST /v1/events/:id/registrations` | approved member, not the organizer | 201 | 401, 403, 404, 409 (full, closed, already registered) |
 | `DELETE /v1/events/:id/registrations/me` | approved member | 200 (status `withdrawn`) | 401, 404 |
@@ -67,5 +67,9 @@ Errors use the NestJS shape `{ "statusCode": 409, "message": "…", "error": "Co
 | `POST /v1/moderation/users/:id/suspend` · `/reactivate` | admin | 200 | 403, 404, 409 |
 | `POST /v1/moderation/events/:id/cancel` | admin | 200 | 403, 404, 409 |
 | `GET /v1/moderation/actions` | admin | 200 | 403 |
+
+Admins have no general edit power over events (not in the `ModerationAction` enum). `POST /v1/moderation/events/:id/cancel`
+is the only path an admin can cancel an event through, so the `ModerationAction` audit row is always written; the owner-only
+`POST /v1/events/:id/cancel` is a separate, unaudited action and must not also accept admin.
 
 Moderators have no route that reads private messages.
