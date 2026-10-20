@@ -31,6 +31,7 @@ const solid = `inline-flex min-h-12 items-center rounded-full bg-brand px-6 text
           <router-link :to="{ name: 'events' }" :class="ghost">Parcourir les sorties</router-link>
           <router-link :to="{ name: 'event-new' }" :class="ghost">Proposer une sortie</router-link>
           <router-link :to="{ name: 'my-events' }" :class="ghost">Mes sorties</router-link>
+          <router-link :to="{ name: 'contacts' }" :class="ghost">Contacts</router-link>
           <router-link :to="{ name: 'profile' }" :class="ghost">Mon profil</router-link>
           <button type="button" :class="solid" @click="logout">Se déconnecter</button>
         </template>

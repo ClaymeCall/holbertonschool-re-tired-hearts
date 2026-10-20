@@ -29,6 +29,7 @@ async function mountView() {
     routes: ['events', 'event-new', 'my-events'].map((name) => ({ path: `/${name}`, name, component: { template: '<div />' } })).concat([
       { path: '/events/:id', name: 'event-detail', component: { template: '<div />' } },
       { path: '/events/:id/edit', name: 'event-edit', component: { template: '<div />' } },
+      { path: '/events/:id/people', name: 'event-people', component: { template: '<div />' } },
     ]),
   })
   wrapper = mount(MyEventsView, { global: { plugins: [router] }, attachTo: document.body })
@@ -102,11 +103,11 @@ describe('MyEventsView', () => {
     expect(wrapper.text()).toContain('Vous organisiez cette sortie')
   })
 
-  it('liste les sorties déjà faites sans action', async () => {
+  it('propose de voir les personnes présentes pour chaque sortie passée', async () => {
     await mountView()
     await openTab('Déjà participé')
-    expect(wrapper.text()).toContain('Sortie 2')
-    expect(wrapper.findAll('button').filter((b) => b.attributes('role') !== 'tab')).toHaveLength(0)
+    const links = wrapper.findAll('a').filter((a) => a.text().startsWith('Voir les personnes présentes'))
+    expect(links.map((a) => a.attributes('href')).sort()).toEqual(['/events/2/people', '/events/5/people'])
   })
 
   it('propose de réessayer si le chargement échoue', async () => {
