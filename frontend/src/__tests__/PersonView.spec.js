@@ -32,6 +32,7 @@ async function mountAt(path) {
       { path: '/profile', name: 'profile', component: { template: '<div />' } },
       { path: '/events/:id/people', name: 'event-people', component: { template: '<div />' } },
       { path: '/events/:id', name: 'event-detail', component: { template: '<div />' } },
+      { path: '/members', name: 'members', component: { template: '<div />' } },
       { path: '/people/:userId', name: 'person', component: PersonView },
     ],
   })
@@ -65,6 +66,14 @@ describe('PersonView', () => {
     expect(wrapper.get('article').text()).toContain('Henri')
     expect(wrapper.get('[aria-label="Discussion avec Henri"]').exists()).toBe(true)
     expect(chat.getMessages).toHaveBeenCalledWith(103)
+  })
+
+  it('explique qu\'il faut une sortie en commun pour écrire à un membre jamais rencontré', async () => {
+    service.getPerson.mockResolvedValue(person({ canMessage: false }))
+    await mountAt('/people/107')
+    expect(wrapper.get('article').text()).toContain('Henri')
+    expect(wrapper.text()).toContain('après avoir participé à une même sortie')
+    expect(wrapper.get('textarea').attributes('disabled')).toBeDefined()
   })
 
   it('grise la discussion quand la personne n\'accepte pas les messages', async () => {
@@ -107,10 +116,15 @@ describe('PersonView', () => {
     expect(button('Enregistrer le profil')).toBeTruthy()
   })
 
-  it('explique que le profil n\'est visible qu\'après une sortie en commun', async () => {
+  it('signale un profil introuvable', async () => {
     service.getPerson.mockRejectedValue(new ApiError(404, 'x'))
     await mountAt('/people/9999')
-    expect(wrapper.get('[role="alert"]').text()).toContain('après une sortie en commun')
+    expect(wrapper.get('[role="alert"]').text()).toContain('introuvable')
+  })
+
+  it('ramène à la recherche quand on vient de la liste des membres', async () => {
+    await mountAt('/people/103?from=members')
+    expect(wrapper.get('a').attributes('href')).toBe('/members')
   })
 
   it('ne présente pas de violation d\'accessibilité détectable', async () => {

@@ -39,6 +39,7 @@ const solid = `inline-flex min-h-12 items-center rounded-full bg-brand px-6 text
         <template v-if="session.isAuthenticated">
           <router-link :to="{ name: 'events' }" :class="ghost">Parcourir les sorties</router-link>
           <router-link :to="{ name: 'my-events' }" :class="ghost">Mes sorties</router-link>
+          <router-link :to="{ name: 'members' }" :class="ghost">Membres</router-link>
           <router-link :to="{ name: 'contacts' }" :class="[ghost, 'gap-2']">
             Contacts
             <UnreadBadge :count="unread.total" />

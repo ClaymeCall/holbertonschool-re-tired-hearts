@@ -90,6 +90,13 @@ describe('ChatPanel', () => {
     expect(wrapper.text()).toContain('Bonjour !')
   })
 
+  it('grise la discussion quand on n\'a aucune sortie en commun avec la personne', async () => {
+    await mountPanel({ canMessage: false })
+    expect(wrapper.text()).toContain('après avoir participé à une même sortie, ou si elle organise une sortie')
+    expect(wrapper.get('textarea').attributes('disabled')).toBeDefined()
+    expect(send().attributes('disabled')).toBeDefined()
+  })
+
   it('grise la discussion quand j\'ai moi-même désactivé les messages, avec un lien vers mon profil', async () => {
     profile.getMyProfile.mockResolvedValue({ messaging_enabled: false })
     await mountPanel()

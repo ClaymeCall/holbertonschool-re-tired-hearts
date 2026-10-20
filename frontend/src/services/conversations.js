@@ -1,12 +1,12 @@
 import { ApiError } from './api'
 import { findPerson } from './directory'
-import { refusesMessages, getPerson } from './people'
+import { canMessagePerson, refusesMessages } from './people'
 import { isMessagingEnabled } from './profile'
 
 // Simulation : les routes de messagerie n'existent pas encore côté API, et il n'y a pas de WebSocket :
 // le front interroge régulièrement. Hypothèses à confirmer avec le backend :
 //  - une conversation est identifiée par l'autre personne (une seule conversation par paire) ;
-//  - on ne peut écrire qu'à une personne rencontrée lors d'une sortie ou à un organisateur (sinon 404) ;
+//  - on ne peut écrire qu'à une personne avec qui on a partagé une sortie, ou à un organisateur (sinon 403) ;
 //  - si l'un des deux a désactivé les messages, l'envoi est refusé (403) ; l'historique reste lisible ;
 //  - message : { id, content, sentAt, fromMe } ; contenu de 1 à 1000 caractères, texte seul (sinon 400) ;
 //  - liste des conversations : { person { id, displayName, approximateLocation }, lastMessage, unreadCount }.
@@ -32,9 +32,8 @@ const threads = new Map([
 
 const publicMessage = ({ id, content, sentAt, fromMe }) => ({ id, content, sentAt, fromMe })
 
-async function ensureReachable(personId) {
-  const person = await getPerson(personId) // 404 si le profil n'est pas accessible
-  return person
+function ensureExists(personId) {
+  if (!findPerson(personId)) throw new ApiError(404, 'Introuvable.')
 }
 
 export async function listConversations() {
@@ -54,7 +53,7 @@ export async function listConversations() {
 
 export async function getMessages(personId) {
   await delay()
-  await ensureReachable(personId)
+  ensureExists(personId)
   return (threads.get(Number(personId)) ?? []).map(publicMessage)
 }
 
@@ -70,7 +69,9 @@ export async function sendMessage(personId, content) {
   const id = Number(personId)
   const text = typeof content === 'string' ? content.trim() : ''
   if (text.length < 1 || text.length > MAX_LENGTH) throw new ApiError(400, 'Message invalide.')
-  await ensureReachable(id)
+  ensureExists(id)
+  // Écrire exige une sortie en commun ou d'écrire à un organisateur (docs/messaging-rules.md) : sinon 403.
+  if (!canMessagePerson(id)) throw new ApiError(403, 'Aucun lien de contact.')
   if (!isMessagingEnabled() || refusesMessages(id)) throw new ApiError(403, 'Messages désactivés.')
   const thread = threads.get(id) ?? []
   const sent = message(text, 0, true)

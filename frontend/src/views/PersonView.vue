@@ -18,6 +18,8 @@ const feedback = ref({ type: '', text: '' })
 const back = computed(() =>
   route.query.organizerOf
     ? { to: { name: 'event-detail', params: { id: route.query.organizerOf } }, label: '← Retour à la sortie' }
+    : route.query.from === 'members'
+    ? { to: { name: 'members' }, label: '← Les membres' }
     : route.query.event
     ? { to: { name: 'event-people', params: { id: route.query.event } }, label: '← Les personnes présentes' }
     : { to: { name: 'contacts' }, label: '← Mes contacts' },
@@ -31,7 +33,7 @@ async function load() {
   } catch (failure) {
     error.value =
       failure.status === 404
-        ? 'Ce profil n’est pas accessible : les profils sont visibles seulement après une sortie en commun.'
+        ? 'Ce profil est introuvable.'
         : 'Impossible de charger ce profil pour le moment.'
   } finally {
     loading.value = false
@@ -89,7 +91,7 @@ onMounted(load)
         </div>
       </article>
 
-      <div class="lg:col-span-7"><ChatPanel :person-id="person.id" :person-name="person.displayName" :accepts-messages="person.acceptsMessages !== false" /></div>
+      <div class="lg:col-span-7"><ChatPanel :person-id="person.id" :person-name="person.displayName" :accepts-messages="person.acceptsMessages !== false" :can-message="person.canMessage !== false" /></div>
     </div>
   </section>
 </template>

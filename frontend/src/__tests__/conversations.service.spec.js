@@ -39,8 +39,16 @@ describe('messagerie (règles simulées)', () => {
     await expect(sendMessage(2, 'a'.repeat(1001))).rejects.toMatchObject({ status: 400 })
   })
 
-  it('refuse d\'écrire à une personne jamais rencontrée (profil inaccessible)', async () => {
+  it('refuse d\'écrire à un membre sans sortie en commun et qui n\'organise rien (403)', async () => {
+    await expect(sendMessage(107, 'Bonjour')).rejects.toMatchObject({ status: 403 })
+  })
+
+  it('répond 404 pour une personne qui n\'existe pas', async () => {
     await expect(sendMessage(9999, 'Bonjour')).rejects.toMatchObject({ status: 404 })
     await expect(getMessages(9999)).rejects.toMatchObject({ status: 404 })
+  })
+
+  it('permet de lire un historique vide avec un membre jamais rencontré', async () => {
+    await expect(getMessages(107)).resolves.toEqual([])
   })
 })
