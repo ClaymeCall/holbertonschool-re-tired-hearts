@@ -8,12 +8,23 @@ import EventDetailView from '../views/EventDetailView.vue'
 import EventFormView from '../views/EventFormView.vue'
 import MyEventsView from '../views/MyEventsView.vue'
 import { useSessionStore } from '../stores/session'
+import { applyPageMeta } from './meta'
 
 const routes = [
-  { path: '/', name: 'home', component: HomeView, meta: { title: 'Accueil' } },
-  { path: '/login', name: 'login', component: LoginView, meta: { title: 'Connexion', guestOnly: true } },
-  { path: '/register', name: 'register', component: RegisterView, meta: { title: 'Inscription', guestOnly: true } },
-  { path: '/profile', name: 'profile', component: ProfileView, meta: { title: 'Mon profil', requiresAuth: true } },
+  { path: '/', name: 'home', component: HomeView, meta: { title: 'Sorties entre seniors' } },
+  {
+    path: '/login',
+    name: 'login',
+    component: LoginView,
+    meta: { title: 'Connexion', description: 'Connectez-vous pour retrouver vos sorties et vos conversations.', guestOnly: true },
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: RegisterView,
+    meta: { title: 'Inscription', description: 'Créez votre compte pour rejoindre des sorties entre seniors près de chez vous.', guestOnly: true },
+  },
+  { path: '/profile', name: 'profile', component: ProfileView, meta: { title: 'Mon profil', requiresAuth: true, noindex: true } },
 ]
 
 const privateMeta = (title) => ({ title, requiresAuth: true, noindex: true })
@@ -42,8 +53,6 @@ router.beforeEach(async (to) => {
   if (to.meta.requiresAuth && !session.isAuthenticated) return { name: 'login' }
 })
 
-router.afterEach((to) => {
-  document.title = `${to.meta.title} – Re-Tired Hearts`
-})
+router.afterEach(applyPageMeta)
 
 export default router
