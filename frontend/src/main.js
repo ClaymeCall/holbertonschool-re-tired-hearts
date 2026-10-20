@@ -5,6 +5,7 @@ import App from './App.vue'
 import router from './router'
 import { setUnauthorizedHandler } from './services/api'
 import { useSessionStore } from './stores/session'
+import { initTextZoom } from './composables/useTextZoom'
 
 const pinia = createPinia()
 const app = createApp(App).use(pinia).use(router)
@@ -15,4 +16,5 @@ setUnauthorizedHandler(() => {
   router.push({ name: 'login' })
 })
 
+initTextZoom()
 app.mount('#app')
