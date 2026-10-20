@@ -1,10 +1,19 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { watch } from 'vue'
+import { usePolling } from '../composables/usePolling'
 import { useSessionStore } from '../stores/session'
+import { useUnreadStore } from '../stores/unread'
+import UnreadBadge from './UnreadBadge.vue'
 import AppLogo from './AppLogo.vue'
 
 const session = useSessionStore()
 const router = useRouter()
+const unread = useUnreadStore()
+
+// Messages non lus : rafraîchis toutes les 30 secondes tant que le membre est connecté (pas de WebSocket).
+watch(() => session.isAuthenticated, (connected) => (connected ? unread.refresh() : unread.reset()), { immediate: true })
+usePolling(() => session.isAuthenticated && unread.refresh(), 30000)
 
 async function logout() {
   await session.logout().catch(() => {})
@@ -31,7 +40,10 @@ const solid = `inline-flex min-h-12 items-center rounded-full bg-brand px-6 text
           <router-link :to="{ name: 'events' }" :class="ghost">Parcourir les sorties</router-link>
           <router-link :to="{ name: 'event-new' }" :class="ghost">Proposer une sortie</router-link>
           <router-link :to="{ name: 'my-events' }" :class="ghost">Mes sorties</router-link>
-          <router-link :to="{ name: 'contacts' }" :class="ghost">Contacts</router-link>
+          <router-link :to="{ name: 'contacts' }" :class="[ghost, 'gap-2']">
+            Contacts
+            <UnreadBadge :count="unread.total" />
+          </router-link>
           <router-link :to="{ name: 'profile' }" :class="ghost">Mon profil</router-link>
           <button type="button" :class="solid" @click="logout">Se déconnecter</button>
         </template>

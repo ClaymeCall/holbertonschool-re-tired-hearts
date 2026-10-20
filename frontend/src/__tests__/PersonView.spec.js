@@ -5,8 +5,11 @@ import axe from 'axe-core'
 import PersonView from '../views/PersonView.vue'
 import { ApiError } from '../services/api'
 import * as service from '../services/people'
+import * as chat from '../services/conversations'
+import { createPinia } from 'pinia'
 
 vi.mock('../services/people')
+vi.mock('../services/conversations')
 
 const person = (extra = {}) => ({
   id: 103,
@@ -25,12 +28,13 @@ async function mountAt(path) {
     routes: [
       { path: '/contacts', name: 'contacts', component: { template: '<div />' } },
       { path: '/events/:id/people', name: 'event-people', component: { template: '<div />' } },
+      { path: '/events/:id', name: 'event-detail', component: { template: '<div />' } },
       { path: '/people/:userId', name: 'person', component: PersonView },
     ],
   })
   router.push(path)
   await router.isReady()
-  wrapper = mount(PersonView, { global: { plugins: [router] }, attachTo: document.body })
+  wrapper = mount(PersonView, { global: { plugins: [router, createPinia()] }, attachTo: document.body })
   await flushPromises()
 }
 const button = (label) => wrapper.findAll('button').find((el) => el.text() === label)
@@ -39,6 +43,9 @@ describe('PersonView', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     service.getPerson.mockResolvedValue(person())
+    chat.getMessages.mockResolvedValue([])
+    chat.markRead.mockResolvedValue()
+    chat.listConversations.mockResolvedValue([])
   })
   afterEach(() => wrapper?.unmount())
 
@@ -47,6 +54,18 @@ describe('PersonView', () => {
     expect(wrapper.get('h1').text()).toBe('Henri')
     expect(wrapper.text()).toContain('Lyon')
     expect(wrapper.text()).toContain('Balade à vélo')
+  })
+
+  it('affiche le profil à gauche et la discussion avec la personne à droite', async () => {
+    await mountAt('/people/103')
+    expect(wrapper.get('article').text()).toContain('Henri')
+    expect(wrapper.get('[aria-label="Discussion avec Henri"]').exists()).toBe(true)
+    expect(chat.getMessages).toHaveBeenCalledWith(103)
+  })
+
+  it('ramène à la sortie quand on vient du bouton « Contacter l\'organisateur »', async () => {
+    await mountAt('/people/2?organizerOf=5')
+    expect(wrapper.get('a').attributes('href')).toBe('/events/5')
   })
 
   it('ramène à la liste des présents quand on vient d\'une sortie, aux contacts sinon', async () => {
