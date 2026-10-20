@@ -11,7 +11,7 @@ class InterestSummaryDto {
 }
 
 class OrganizerSummaryDto {
-  @ApiProperty({ example: 7 })
+  @ApiProperty({ example: 7, description: 'Profile id of the organizer (same id as GET /v1/profiles/:id)' })
   id: number;
 
   @ApiProperty({ example: 'Marie', nullable: true, description: 'Display name of the organizer profile (never the email)' })
@@ -90,7 +90,7 @@ export interface EventViewRow {
   registeredCount: number;
   interestId: number;
   interestName: string;
-  organizerId: number;
+  organizerId: number; // profile id of the organizer
   organizerName: string | null;
   isOrganizer: boolean;
   myRegistration: RegistrationStatus | null;
