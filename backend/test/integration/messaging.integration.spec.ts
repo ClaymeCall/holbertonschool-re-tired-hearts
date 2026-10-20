@@ -184,7 +184,13 @@ describe('Messaging API (integration)', () => {
       await shareAnEvent(carol, [alice, bob]);
     });
 
-    it.each([[''], ['   '], ['\n\t'], ['a'.repeat(1001)], ['😀'.repeat(1001)]])('refuses %j with 400 and a clear message', async (content) => {
+    it.each([
+      ['an empty message', ''],
+      ['only spaces', '   '],
+      ['only a line break and a tab', '\n\t'],
+      ['1,001 characters', 'a'.repeat(1001)],
+      ['1,001 emojis', '😀'.repeat(1001)],
+    ])('refuses %s with 400 and a clear message', async (_name, content) => {
       const res = await send(alice, bobP, content).expect(400);
       expect(JSON.stringify(res.body.message)).toMatch(/empty|longer/);
     });
