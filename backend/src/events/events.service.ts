@@ -26,7 +26,8 @@ import { canViewEvent, registrationClosedReason } from './event-rules';
 export class EventsService {
   // Read model of an event, seen by the user whose id is $1: counts the `registered` rows and
   // adds the viewer-specific fields (isOrganizer, myRegistration). It reads the `interests` and
-  // `profiles` tables directly so this module does not depend on their entities.
+  // `profiles` tables directly so this module does not depend on their entities. The organizer is
+  // designated by their PROFILE id, like every person in the API (GET /v1/profiles/:id).
   private static readonly VIEW_SELECT = `
     SELECT e.id, e.title, e.description,
            e.approximate_location AS "approximateLocation",
@@ -35,7 +36,7 @@ export class EventsService {
            (SELECT count(*)::int FROM event_registrations r
              WHERE r.event_id = e.id AND r.status = 'registered') AS "registeredCount",
            i.id AS "interestId", i.name AS "interestName",
-           e.organizer_id AS "organizerId", p.display_name AS "organizerName",
+           p.id AS "organizerId", p.display_name AS "organizerName",
            (e.organizer_id = $1) AS "isOrganizer",
            (SELECT r.status FROM event_registrations r
              WHERE r.event_id = e.id AND r.user_id = $1) AS "myRegistration"
