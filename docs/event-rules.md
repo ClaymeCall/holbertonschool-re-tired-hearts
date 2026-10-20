@@ -47,6 +47,7 @@ marks it `completed`, but it already refuses new registrations because it is in 
 | Complete | organizer | state `published` and `starts_at` in the past |
 | Delete (physical) | organizer | state `draft` and zero registrations, otherwise cancel instead |
 | View a draft | organizer, moderator | |
+| View a `cancelled` or `completed` event | organizer, moderator, and any member who has a registration row for it (`registered` or `withdrawn`) | |
 
 A moderator has no general edit power over events: it can view drafts and cancel an event only through the audited moderation route (decision recorded in `docs/api-conventions.md`).
 
@@ -64,6 +65,8 @@ A moderator has no general edit power over events: it can view drafts and cancel
 - Withdrawing is allowed only while the event is `published`; on a `cancelled` or `completed` event the registration is kept as it is.
 - **Register again**: the same row goes back to `registered` if the conditions above still hold (no second row:
   `UNIQUE (event_id, user_id)`).
+- A moderator account can register for events like any member, under the same conditions.
+- A member who withdrew keeps read access to the event (including once it is `cancelled` or `completed`), but a withdrawn registration gives no right to start a conversation with the other participants (see `docs/messaging-rules.md`).
 - When an event is cancelled, its registrations are left as they are, to keep the history readable for participants.
 - When an account becomes `self_deleted` or `suspended`, its `registered` rows are switched to `withdrawn` (see `docs/data-model.md`).
 
@@ -85,8 +88,3 @@ the same event waits for the lock and then sees the updated count.
 | Not the organizer on edit, publish, complete or delete | 403 Forbidden |
 | Account suspended or profile not approved | 403 Forbidden |
 | Withdraw from a `cancelled` or `completed` event, or without a `registered` row | 409 Conflict |
-
-## Points to confirm with the team
-
-- Whether the moderator account may register for events like a member.
-- Whether a member who withdrew can still view the event once it is `cancelled` or `completed` (proposal: yes, any registration row gives access).
