@@ -26,6 +26,17 @@ describe('navigation', () => {
     expect(router.currentRoute.value.name).toBe('login')
   })
 
+  it('renvoie un membre déjà connecté loin de la connexion et de l\'inscription', async () => {
+    setActivePinia(createPinia())
+    auth.fetchCurrentUser.mockResolvedValue({ id: 1, email: 'a@b.fr', accountStatus: 'active' })
+    await router.push('/profile')
+    // L'accueil mène lui-même aux sorties une fois que cette page existe (branche des sorties).
+    await router.push('/login')
+    expect(['home', 'events']).toContain(router.currentRoute.value.name)
+    await router.push('/register')
+    expect(['home', 'events']).toContain(router.currentRoute.value.name)
+  })
+
   it('retrouve la session au chargement et laisse passer un membre connecté', async () => {
     setActivePinia(createPinia())
     auth.fetchCurrentUser.mockResolvedValue(member)
