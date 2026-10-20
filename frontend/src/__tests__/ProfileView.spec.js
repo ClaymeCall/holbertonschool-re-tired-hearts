@@ -26,6 +26,26 @@ describe('ProfileView', () => {
     expect(wrapper.get('#display_name').element.value).toBe('Jeanne')
   })
 
+  it('affiche un formulaire vide, sans erreur, quand le profil n\'existe pas encore (404)', async () => {
+    profile.getMyProfile.mockRejectedValue(new ApiError(404, 'x'))
+    const wrapper = await mountView()
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Vous n’avez pas encore de profil')
+    expect(wrapper.get('#display_name').element.value).toBe('')
+  })
+
+  it('crée le profil au premier enregistrement puis n\'affiche plus l\'invitation', async () => {
+    profile.getMyProfile.mockRejectedValue(new ApiError(404, 'x'))
+    profile.updateMyProfile.mockResolvedValue({ ...base, display_name: 'Jeanne' })
+    const wrapper = await mountView()
+    await wrapper.get('#display_name').setValue('Jeanne')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(profile.updateMyProfile).toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Votre profil a été enregistré.')
+    expect(wrapper.text()).not.toContain('Vous n’avez pas encore de profil')
+  })
+
   it('propose de réessayer si le chargement échoue', async () => {
     profile.getMyProfile.mockRejectedValue(new Error('x'))
     const wrapper = await mountView()
