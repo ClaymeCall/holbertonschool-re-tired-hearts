@@ -62,6 +62,8 @@ gates visibility (the suspended owner simply can't use protected features themse
 |---|---|
 | Not authenticated | 401 Unauthorized |
 | Requested profile is `pending` or `blocked`, caller is neither the owner nor a moderator | 404 Not Found |
+| Requested profile belongs to a `self_deleted` account, caller is neither the owner nor a moderator | 404 Not Found |
 | Requested profile id does not exist | 404 Not Found |
-| Authenticated member requests their own profile (`GET /v1/profiles/me`) regardless of status | 200 OK |
+| Authenticated member requests their own profile (`GET /v1/profiles/me`) and it already exists, regardless of status | 200 OK |
+| Authenticated member requests their own profile (`GET /v1/profiles/me`) before ever creating one | 404 Not Found — not an empty shape; the client uses this to decide between showing a creation form and an edit form |
 | Moderator requests any profile by id | 200 OK |
