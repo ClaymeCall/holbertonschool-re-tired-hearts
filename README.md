@@ -73,6 +73,7 @@ docker compose exec backend npm run seed
 
 The seed is idempotent and prints each demo account's login (including the initial moderator) at the end — see `docs/contributing.md#recreating-a-blank-database-and-reseeding` for details.
 
+
 ### 4. Stop the stack
 
 ```bash

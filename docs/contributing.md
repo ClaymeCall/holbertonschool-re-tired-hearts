@@ -38,9 +38,18 @@ feat(frontend): add router, home view and api client with tests
 build(frontend): add vue-router, pinia and vitest tooling
 ```
 
-## Recreating a blank database and reseeding
+## Database migrations
 
-Drop and recreate the Postgres volume, then run the versioned migrations and the demo seed:
+The schema is managed through versioned TypeORM migrations (see `docs/backend-structure.md#commands`) — there is no `synchronize: true`, so an empty Postgres volume has no tables until migrations run.
+
+Run migrations against the `backend` container after any first `docker compose up --build`, and again any time you reset the volume:
+
+```bash
+docker compose exec backend npm run migration:run
+```
+
+Skipping this step is the most common "it worked yesterday" surprise in this project: the stack starts fine, but every request that touches the database (e.g. `POST /v1/auth/register`) fails with `relation "users" does not exist` until migrations are run.
+
 
 ```bash
 docker compose down -v                        # stops services and removes db_data

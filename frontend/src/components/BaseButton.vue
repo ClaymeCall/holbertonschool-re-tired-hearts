@@ -1,0 +1,24 @@
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  to: { type: [String, Object], default: null },
+  type: { type: String, default: 'button' },
+  variant: { type: String, default: 'primary' },
+  loading: { type: Boolean, default: false },
+  block: { type: Boolean, default: false },
+})
+
+const classes = computed(() => [
+  'group inline-flex min-h-14 items-center justify-center gap-3 rounded-b-md rounded-t-[1.75rem] px-8 py-3 text-center text-lg font-bold transition-colors motion-reduce:transition-none disabled:opacity-70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2',
+  props.block ? 'w-full' : '',
+  props.variant === 'secondary'
+    ? 'border-2 border-ink bg-transparent text-ink hover:bg-ink hover:text-paper'
+    : 'bg-brand text-white hover:bg-brand-dark',
+])
+</script>
+
+<template>
+  <router-link v-if="to" :to="to" :class="classes"><slot /><span aria-hidden="true">→</span></router-link>
+  <button v-else :type="type" :disabled="loading" :aria-busy="loading" :class="classes"><slot /></button>
+</template>
