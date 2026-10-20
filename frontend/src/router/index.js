@@ -3,6 +3,10 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import EventsView from '../views/EventsView.vue'
+import EventDetailView from '../views/EventDetailView.vue'
+import EventFormView from '../views/EventFormView.vue'
+import MyEventsView from '../views/MyEventsView.vue'
 import { useSessionStore } from '../stores/session'
 
 const routes = [
@@ -11,6 +15,16 @@ const routes = [
   { path: '/register', name: 'register', component: RegisterView, meta: { title: 'Inscription' } },
   { path: '/profile', name: 'profile', component: ProfileView, meta: { title: 'Mon profil', requiresAuth: true } },
 ]
+
+const privateMeta = (title) => ({ title, requiresAuth: true, noindex: true })
+
+routes.push(
+  { path: '/events', name: 'events', component: EventsView, meta: privateMeta('Les sorties') },
+  { path: '/events/new', name: 'event-new', component: EventFormView, meta: privateMeta('Proposer une sortie') },
+  { path: '/events/:id', name: 'event-detail', component: EventDetailView, meta: privateMeta('Détail de la sortie') },
+  { path: '/events/:id/edit', name: 'event-edit', component: EventFormView, meta: privateMeta('Modifier la sortie') },
+  { path: '/my-events', name: 'my-events', component: MyEventsView, meta: privateMeta('Mes sorties') },
+)
 
 const router = createRouter({
   history: createWebHistory(),
