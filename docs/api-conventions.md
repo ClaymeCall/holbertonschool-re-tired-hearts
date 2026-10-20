@@ -34,6 +34,21 @@ Covers issue **#37**. A JWT (`sub` = user id, HS256) is the session token. It tr
   own restriction. Status-based route protection (rejecting suspended/blocked accounts on
   everything *except* `/auth/me`) is issues **#42**/**#66**.
 
+## Rate limiting
+
+Covers issue **#38**. `POST /v1/auth/register` and `POST /v1/auth/login` are rate-limited with
+`@nestjs/throttler` (`ThrottlerGuard`), **5 requests per 60 seconds per IP** for each route
+independently (`backend/src/auth/rate-limit.constants.ts`); a 6th request within the window gets
+429. No other route is throttled.
+
+- Tracked by IP (the library's default), not by the submitted email: it limits how fast one
+  source can hammer either endpoint, regardless of which account(s) it targets.
+- In-memory storage, so the limit is per backend process. Fine for the MVP's single backend
+  container; a multi-instance deployment would need a shared store (e.g. Redis) instead — out of
+  scope here.
+- Known limitation: callers behind the same NAT/proxy share a limit. Acceptable trade-off for the
+  MVP given the brute-force/credential-stuffing threat this mitigates.
+
 ## Permission levels
 
 | Level | Meaning |

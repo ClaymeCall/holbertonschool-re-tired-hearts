@@ -1,3 +1,4 @@
+import { ThrottlerModule } from '@nestjs/throttler';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
 import { AccountStatus, User } from '../users/entities/user.entity';
@@ -8,6 +9,7 @@ import {
   ACCESS_TOKEN_COOKIE_OPTIONS,
   CLEAR_ACCESS_TOKEN_COOKIE_OPTIONS,
 } from './cookie';
+import { AUTH_RATE_LIMIT, AUTH_RATE_WINDOW_MS } from './rate-limit.constants';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -34,6 +36,7 @@ describe('AuthController', () => {
     res = { cookie: jest.fn(), clearCookie: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
+      imports: [ThrottlerModule.forRoot([{ limit: AUTH_RATE_LIMIT, ttl: AUTH_RATE_WINDOW_MS }])],
       controllers: [AuthController],
       providers: [{ provide: AuthService, useValue: authService }],
     }).compile();
