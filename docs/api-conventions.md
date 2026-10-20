@@ -13,6 +13,27 @@ This page fixes the conventions and the planned routes; the generated contract s
 - The caller's identity always comes from the session or token, never from the request body
   (a message sender, an event organizer, a registering member).
 
+## Session & token strategy
+
+Covers issue **#37**. A JWT (`sub` = user id, HS256) is the session token. It travels in an
+`httpOnly`, `SameSite=Lax` cookie (`secure` in production) set by `POST /v1/auth/register` and
+`POST /v1/auth/login`, named `access_token`; the client never reads or stores it in JS.
+
+- **Expiration**: 2 hours, both for the JWT (`expiresIn`) and the cookie (`maxAge`) — kept as one
+  shared constant (`backend/src/auth/session.constants.ts`) so they can't drift apart. There is no
+  refresh token for the MVP: once it expires, the caller logs in again.
+- **Logout** (`POST /v1/auth/logout`) clears the cookie. The JWT itself is not revoked server-side
+  (no blocklist in the MVP), so a copy of the token taken before logout would still verify until it
+  naturally expires. Documented MVP limitation — acceptable given the 2-hour expiry and that the
+  token never leaves an `httpOnly` cookie.
+- **Per-request account-status checks**: `JwtStrategy.validate()` re-reads the user from the
+  database on every authenticated request instead of trusting the JWT payload, so a suspension or
+  self-deletion takes effect on the caller's very next request, not only after the token expires.
+  `JwtAuthGuard` only proves "this is a valid session for an existing user" — it does **not** reject
+  suspended/blocked accounts, because `GET /v1/auth/me` must stay reachable for them to read their
+  own restriction. Status-based route protection (rejecting suspended/blocked accounts on
+  everything *except* `/auth/me`) is issues **#42**/**#66**.
+
 ## Permission levels
 
 | Level | Meaning |

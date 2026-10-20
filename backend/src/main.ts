@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -8,7 +9,15 @@ async function bootstrap() {
 
   // Every route is served under /v1 (no further versioning strategy for the MVP).
   app.setGlobalPrefix('v1');
-  app.enableCors();
+  // `credentials: true` + an explicit origin (not `*`) so the browser will send/accept the
+  // session cookie across the frontend/backend ports. Full env-driven CORS config is #72;
+  // this dev-only default is enough for the auth cookie to work locally in the meantime.
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:5173'],
+    credentials: true,
+  });
+  // The session token travels as an httpOnly cookie (docs/api-conventions.md#session-strategy).
+  app.use(cookieParser());
 
   // Each request body is validated against its DTO. `whitelist` drops unknown fields and
   // `forbidNonWhitelisted` rejects them, so a client cannot send { "is_admin": true }.

@@ -30,6 +30,8 @@ services:
       DB_USER: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       DB_NAME: ${POSTGRES_DB:-retired_hearts}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
     ports:
       - "3000:3000"
     volumes:
