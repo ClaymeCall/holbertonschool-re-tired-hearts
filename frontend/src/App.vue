@@ -1,11 +1,23 @@
+<script setup>
+import AppHeader from './components/AppHeader.vue'
+</script>
+
 <template>
-  <a
-    href="#main"
-    class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-slate-900"
-  >
-    Aller au contenu principal
-  </a>
-  <main id="main" class="bg-slate-50">
-    <router-view />
-  </main>
+  <div class="flex min-h-dvh flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-lg focus:font-semibold focus:text-ink focus:outline-none focus:ring-4 focus:ring-brand focus:ring-offset-2"
+    >
+      Aller au contenu principal
+    </a>
+    <AppHeader />
+    <main id="main" class="flex-1">
+      <router-view />
+    </main>
+    <footer class="bg-ink px-4 py-3 text-paper sm:px-6">
+      <p class="mx-auto max-w-6xl text-base">
+        <span class="font-extrabold">Re-Tired Hearts</span> – un service Happy Retired
+      </p>
+    </footer>
+  </div>
 </template>
