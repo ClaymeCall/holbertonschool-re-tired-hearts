@@ -8,11 +8,12 @@ defineProps({
   hint: { type: String, default: '' },
   autocomplete: { type: String, default: 'off' },
   multiline: { type: Boolean, default: false },
+  min: { type: [String, Number], default: undefined },
 })
 defineEmits(['update:modelValue'])
 
 const fieldClasses =
-  'mt-1 block w-full rounded-xl border-2 border-line bg-white px-4 py-2.5 text-lg text-ink placeholder:text-muted aria-[invalid=true]:border-danger focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2'
+  'mt-1 block min-h-14 w-full rounded-xl border-2 border-line bg-white px-4 py-2.5 text-lg text-ink placeholder:text-muted aria-[invalid=true]:border-danger focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2'
 </script>
 
 <template>
@@ -23,6 +24,7 @@ const fieldClasses =
       :is="multiline ? 'textarea' : 'input'"
       :id="id"
       :type="multiline ? undefined : type"
+      :min="multiline ? undefined : min"
       :rows="multiline ? 3 : undefined"
       :value="modelValue"
       :autocomplete="autocomplete"

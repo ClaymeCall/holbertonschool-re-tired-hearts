@@ -6,6 +6,7 @@ const props = defineProps({
   type: { type: String, default: 'button' },
   variant: { type: String, default: 'primary' },
   loading: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
   block: { type: Boolean, default: false },
 })
 
@@ -14,11 +15,13 @@ const classes = computed(() => [
   props.block ? 'w-full' : '',
   props.variant === 'secondary'
     ? 'border-2 border-ink bg-transparent text-ink hover:bg-ink hover:text-paper'
-    : 'bg-brand text-white hover:bg-brand-dark',
+    : props.variant === 'danger'
+      ? 'bg-danger text-white hover:bg-black'
+      : 'bg-brand text-white hover:bg-brand-dark',
 ])
 </script>
 
 <template>
   <router-link v-if="to" :to="to" :class="classes"><slot /><span aria-hidden="true">→</span></router-link>
-  <button v-else :type="type" :disabled="loading" :aria-busy="loading" :class="classes"><slot /></button>
+  <button v-else :type="type" :disabled="loading || disabled" :aria-busy="loading" :class="classes"><slot /></button>
 </template>
