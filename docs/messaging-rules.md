@@ -19,13 +19,12 @@ A member can start a conversation with a recipient only if **all** of these hold
 2. both are authorized to communicate (definition above);
 3. at least one of these contact links exists:
    - **shared event**: both have an active registration for the same event;
-   - **organizer**: the sender has an active registration for an event organized by the recipient;
+   - **organizer**: one of them has an active registration for an event organized by the other. This works in **both directions**: a registered member can write to the organizer, and the organizer can write to a registered member;
+   - **moderator**: the sender is a moderator (`is_admin`). A moderator can start a conversation with any member without a contact link. The recipient's own conditions (active account, approved profile, `messaging_enabled`) still apply.
 4. no conversation exists yet between the two users, whoever started it.
 
 Notes:
-- Only the registered member can write first to the organizer. An organizer cannot start a conversation with a registrant
-  (they can reply once the registrant has written).
-- The state of the event (`published`, `cancelled`, `completed`) is not checked: what counts is the `registered` row.
+- The state of the event is not checked: a `cancelled` or `completed` event does not prevent two people who were registered from talking, because what counts is the `registered` row. Since a `cancelled` event refuses new registrations, only people registered **before** can use it as a contact link.
 - A withdrawn registration does not grant the right to start a new conversation.
 
 ## Sending a message in an existing conversation
@@ -68,16 +67,10 @@ unavailable member instead of exposing account details.
 | Not authenticated | 401 Unauthorized |
 | Caller's account suspended, or profile `pending`/`blocked` | 403 Forbidden |
 | Recipient exists but does not accept private messages | 403 Forbidden, explicit message |
-| No shared event and recipient is not the organizer of an event the caller is registered for | 403 Forbidden |
+| No contact link (no shared event, no organizer link) and the caller is not a moderator | 403 Forbidden |
 | Recipient unavailable (profile not approved, account not active) | 404 Not Found |
 | Conversation already exists between the two users | 409 Conflict (the client opens the existing conversation from `GET /v1/conversations`) |
 | Sender and recipient are the same user | 400 Bad Request |
 | Empty message, longer than 1,000 characters, or unknown field in the body | 400 Bad Request |
 | Conversation not found, or the caller is not a participant | 404 Not Found |
 
-## Points to confirm with the team
-
-- Whether the organizer should also be allowed to start a conversation with one of their registrants (the brief only
-  mentions the registered member writing to the organizer).
-- Whether the event state should matter when starting a conversation (for example no new conversation for a `cancelled` event).
-- Whether the moderator account may use private messaging like a member.
