@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { Response } from 'express';
 import { User } from '../users/entities/user.entity';
 import { toUserResponse, UserResponseDto } from '../users/dto/user-response.dto';
@@ -20,8 +21,9 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @UseGuards(ThrottlerGuard)
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a member account and start a session (public)' })
+  @ApiOperation({ summary: 'Create a member account and start a session (public, rate-limited)' })
   async register(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
@@ -32,8 +34,9 @@ export class AuthController {
   }
 
   @Post('login')
+  @UseGuards(ThrottlerGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Start a session for an existing account (public)' })
+  @ApiOperation({ summary: 'Start a session for an existing account (public, rate-limited)' })
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
