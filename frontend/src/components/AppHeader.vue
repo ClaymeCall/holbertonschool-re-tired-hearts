@@ -20,14 +20,17 @@ const solid = `inline-flex min-h-12 items-center rounded-full bg-brand px-6 text
   <header class="sticky top-0 z-20 border-b border-mist-deep bg-paper/95 backdrop-blur">
     <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2 sm:px-6">
       <router-link
-        :to="{ name: 'home' }"
-        aria-label="Re-Tired Hearts, retour à l'accueil"
+        :to="{ name: session.isAuthenticated ? 'events' : 'home' }"
+        :aria-label="session.isAuthenticated ? 'Re-Tired Hearts, retour aux sorties' : 'Re-Tired Hearts, retour à l\'accueil'"
         :class="`inline-flex min-h-12 items-center rounded-xl ${focus}`"
       >
         <AppLogo />
       </router-link>
       <nav aria-label="Navigation principale" class="flex flex-wrap items-center gap-2">
         <template v-if="session.isAuthenticated">
+          <router-link :to="{ name: 'events' }" :class="ghost">Parcourir les sorties</router-link>
+          <router-link :to="{ name: 'event-new' }" :class="ghost">Proposer une sortie</router-link>
+          <router-link :to="{ name: 'my-events' }" :class="ghost">Mes sorties</router-link>
           <router-link :to="{ name: 'profile' }" :class="ghost">Mon profil</router-link>
           <button type="button" :class="solid" @click="logout">Se déconnecter</button>
         </template>

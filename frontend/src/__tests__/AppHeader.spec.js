@@ -19,7 +19,7 @@ function mountHeader() {
   const stub = { template: '<div />' }
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: ['home', 'login', 'register', 'profile'].map((name) => ({ path: name === 'home' ? '/' : `/${name}`, name, component: stub })),
+    routes: ['home', 'login', 'register', 'profile', 'events', 'event-new', 'my-events'].map((name) => ({ path: name === 'home' ? '/' : `/${name}`, name, component: stub })),
   })
   mounted = mount(AppHeader, { global: { plugins: [pinia, router] }, attachTo: document.body })
   return mounted
@@ -31,6 +31,7 @@ describe('AppHeader', () => {
     expect(wrapper.text()).toContain('Connexion')
     expect(wrapper.text()).toContain('Inscription')
     expect(wrapper.text()).not.toContain('Mon profil')
+    expect(wrapper.get('a[aria-label]').attributes('href')).toBe('/')
   })
 
   it('propose profil et déconnexion aux membres connectés, puis déconnecte', async () => {
@@ -39,6 +40,11 @@ describe('AppHeader', () => {
     useSessionStore().user = { id: 1 }
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Mon profil')
+    expect(wrapper.text()).toContain('Parcourir les sorties')
+    expect(wrapper.findAll('a').find((a) => a.text() === 'Parcourir les sorties').attributes('href')).toBe('/events')
+    expect(wrapper.text()).toContain('Proposer une sortie')
+    expect(wrapper.text()).toContain('Mes sorties')
+    expect(wrapper.get('a[aria-label]').attributes('href')).toBe('/events')
     await wrapper.find('button').trigger('click')
     await flushPromises()
     expect(useSessionStore().isAuthenticated).toBe(false)

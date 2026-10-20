@@ -35,6 +35,8 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const session = useSessionStore()
   await session.init()
+  // Une fois connecté, l'accueil de présentation laisse place à la liste des sorties.
+  if (to.name === 'home' && session.isAuthenticated) return { name: 'events' }
   if (to.meta.requiresAuth && !session.isAuthenticated) return { name: 'login' }
 })
 
