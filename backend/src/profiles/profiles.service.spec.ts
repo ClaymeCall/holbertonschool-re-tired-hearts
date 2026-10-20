@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AccountStatus, User } from '../users/entities/user.entity';
@@ -228,6 +228,70 @@ describe('ProfilesService', () => {
       repo.findOne.mockResolvedValue(null);
 
       await expect(service.findByIdForViewer(404, otherMember)).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('moderation transitions', () => {
+    it('approves a pending profile', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.PENDING });
+
+      const profile = await service.approve(existingProfile.id);
+
+      expect(profile.moderationStatus).toBe(ProfileModerationStatus.APPROVED);
+      expect(repo.save).toHaveBeenCalled();
+    });
+
+    it('refuses to approve an already-approved profile', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.APPROVED });
+
+      await expect(service.approve(existingProfile.id)).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('blocks a pending profile', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.PENDING });
+
+      const profile = await service.block(existingProfile.id);
+
+      expect(profile.moderationStatus).toBe(ProfileModerationStatus.BLOCKED);
+    });
+
+    it('blocks an approved profile', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.APPROVED });
+
+      const profile = await service.block(existingProfile.id);
+
+      expect(profile.moderationStatus).toBe(ProfileModerationStatus.BLOCKED);
+    });
+
+    it('unblocks a blocked profile back to approved', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.BLOCKED });
+
+      const profile = await service.unblock(existingProfile.id);
+
+      expect(profile.moderationStatus).toBe(ProfileModerationStatus.APPROVED);
+    });
+
+    it('refuses to unblock a profile that is not blocked', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.PENDING });
+
+      await expect(service.unblock(existingProfile.id)).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('throws 404 for an unknown profile id', async () => {
+      repo.findOne.mockResolvedValue(null);
+
+      await expect(service.approve(404)).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('lists profiles filtered by moderation status', async () => {
+      repo.find.mockResolvedValue([existingProfile]);
+
+      const result = await service.listByStatus(ProfileModerationStatus.PENDING);
+
+      expect(repo.find).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { moderationStatus: ProfileModerationStatus.PENDING } }),
+      );
+      expect(result).toEqual([existingProfile]);
     });
   });
 });

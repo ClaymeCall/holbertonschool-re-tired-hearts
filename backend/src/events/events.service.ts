@@ -52,6 +52,7 @@ export class EventsService {
   // ---------- reading ----------
 
   async list(user: User, query: ListEventsQuery): Promise<EventListResponseDto> {
+    await this.assertCanBrowse(user);
     const { page, limit } = query;
     const filters = (firstIndex: number) => {
       const conditions = [`e.status = 'published'`];
@@ -86,6 +87,10 @@ export class EventsService {
     return { items: rows.map(toEventResponse), page, limit, total };
   }
 
+  // Not gated by assertCanBrowse: besides the public GET /:id route, this is reused internally
+  // by every write method below to build its response, including for an organizer whose own
+  // profile may not be approved (create() already required it; publish/cancel/complete only
+  // check ownership). The blocked-profile browse restriction (#66) applies to list() only.
   async getById(user: User, id: number): Promise<EventResponseDto> {
     const [row]: EventViewRow[] = await this.dataSource.query(
       `${EventsService.VIEW_SELECT} WHERE e.id = $2`,
@@ -193,6 +198,23 @@ export class EventsService {
     return this.getById(user, id);
   }
 
+  // Cancelling by a moderator, through the audited moderation route (#65). Same transition as
+  // the organizer-only cancel() above, minus the ownership check — a moderator may cancel any
+  // event, not just their own (docs/role-assignment-rules.md).
+  async cancelByModerator(moderator: User, id: number): Promise<EventResponseDto> {
+    const event = await this.events.findOneBy({ id });
+    if (!event) {
+      throw new NotFoundException('Event not found.');
+    }
+    await this.transition(
+      event,
+      [EventStatus.PUBLISHED],
+      EventStatus.CANCELLED,
+      'Only a published event can be cancelled.',
+    );
+    return this.getById(moderator, id);
+  }
+
   async complete(user: User, id: number): Promise<EventResponseDto> {
     const event = await this.events.findOneBy({ id });
     this.assertOwner(event, user);
@@ -270,6 +292,23 @@ export class EventsService {
   }
 
   // ---------- helpers ----------
+
+  // A blocked profile cannot browse published events; a pending profile (or no profile at all
+  // yet) can (docs/design-decisions.md §4 "What each state allows"). Account status is covered
+  // separately by ActiveAccountGuard (#66) on the controller; kept here too so the rule holds
+  // whatever the guards of the route.
+  private async assertCanBrowse(user: User): Promise<void> {
+    if (user.accountStatus !== AccountStatus.ACTIVE) {
+      throw new ForbiddenException('Your account is not active.');
+    }
+    const [profile] = await this.dataSource.query(
+      `SELECT moderation_status FROM profiles WHERE user_id = $1`,
+      [user.id],
+    );
+    if (profile?.moderation_status === 'blocked') {
+      throw new ForbiddenException('Your profile is blocked.');
+    }
+  }
 
   // Account `active` and profile `approved` are required to create or register. The account
   // check will also be covered by ActiveAccountGuard (#42); it is kept here so the rule holds

@@ -187,6 +187,35 @@ describe('EventsService lifecycle', () => {
     await service.remove(user({ id: 1 }), 10);
     expect(events.delete).toHaveBeenCalledWith({ id: 10, status: EventStatus.DRAFT });
   });
+
+  it('lets a moderator cancel any published event, regardless of organizer', async () => {
+    const { service, events } = build();
+    events.findOneBy.mockResolvedValue(event({ status: EventStatus.PUBLISHED, organizerId: 2 }));
+    const moderator = user({ id: 99, isAdmin: true });
+
+    await service.cancelByModerator(moderator, 10);
+
+    expect(events.update).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }), { status: EventStatus.CANCELLED });
+  });
+
+  it('refuses to moderator-cancel an unpublished event', async () => {
+    const { service, events } = build();
+    events.findOneBy.mockResolvedValue(event({ status: EventStatus.DRAFT, organizerId: 2 }));
+    events.update.mockResolvedValue({ affected: 0 });
+
+    await expect(service.cancelByModerator(user({ id: 99, isAdmin: true }), 10)).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+  });
+
+  it('answers 404 when a moderator cancels an unknown event', async () => {
+    const { service, events } = build();
+    events.findOneBy.mockResolvedValue(null);
+
+    await expect(service.cancelByModerator(user({ id: 99, isAdmin: true }), 404)).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
 });
 
 describe('EventsService.update', () => {
@@ -337,16 +366,42 @@ describe('EventsService.list', () => {
   it('lists published events with the pagination envelope and escapes LIKE wildcards', async () => {
     const { service, dataSource } = build();
     dataSource.query
+      .mockResolvedValueOnce([{ moderation_status: 'approved' }]) // assertCanBrowse
       .mockResolvedValueOnce([{ total: 30 }])
       .mockResolvedValueOnce([viewRow(), viewRow({ id: 11 })]);
     const result = await service.list(user({ id: 5 }), { page: 2, limit: 12, interest: 3, location: '100%_' });
 
     expect(result).toMatchObject({ page: 2, limit: 12, total: 30 });
     expect(result.items).toHaveLength(2);
-    const [countSql, countParams] = dataSource.query.mock.calls[0] as unknown as [string, unknown[]];
+    const [countSql, countParams] = dataSource.query.mock.calls[1] as unknown as [string, unknown[]];
     expect(countSql).toContain(`e.status = 'published'`);
     expect(countParams).toEqual([3, '%100\\%\\_%']);
-    const [, pageParams] = dataSource.query.mock.calls[1] as unknown as [string, unknown[]];
+    const [, pageParams] = dataSource.query.mock.calls[2] as unknown as [string, unknown[]];
     expect(pageParams).toEqual([5, 3, '%100\\%\\_%', 12, 12]); // viewer, filters, limit, offset
+  });
+
+  it('refuses to list for a blocked profile', async () => {
+    const { service, dataSource } = build();
+    dataSource.query.mockResolvedValueOnce([{ moderation_status: 'blocked' }]);
+
+    await expect(service.list(user({ id: 5 }), { page: 1, limit: 12 })).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('allows listing for a pending profile', async () => {
+    const { service, dataSource } = build();
+    dataSource.query
+      .mockResolvedValueOnce([{ moderation_status: 'pending' }])
+      .mockResolvedValueOnce([{ total: 0 }])
+      .mockResolvedValueOnce([]);
+
+    await expect(service.list(user({ id: 5 }), { page: 1, limit: 12 })).resolves.toMatchObject({ total: 0 });
+  });
+
+  it('refuses to list for a suspended account', async () => {
+    const { service } = build();
+
+    await expect(
+      service.list(user({ id: 5, accountStatus: AccountStatus.SUSPENDED }), { page: 1, limit: 12 }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

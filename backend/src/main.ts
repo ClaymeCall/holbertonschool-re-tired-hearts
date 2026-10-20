@@ -2,10 +2,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Secure headers (#67): HSTS, no-sniff, frame-deny, etc. `contentSecurityPolicy` is left at
+  // helmet's default (on) — this is a JSON API with no HTML views of its own to break.
+  app.use(helmet());
 
   // Every route is served under /v1 (no further versioning strategy for the MVP).
   app.setGlobalPrefix('v1');
