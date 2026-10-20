@@ -75,6 +75,13 @@ describe('EventDetailView', () => {
     expect(wrapper.text()).toContain('Votre place est libérée')
   })
 
+  it.each(['cancelled', 'completed'])('masque « Me désinscrire » sur une sortie %s', async (status) => {
+    service.getEvent.mockResolvedValue({ ...baseEvent, status, myRegistration: 'registered' })
+    await mountView()
+    expect(button('Me désinscrire')).toBeUndefined()
+    expect(wrapper.text()).toMatch(/annulée|terminée/)
+  })
+
   it('refuse l\'inscription à une sortie complète', async () => {
     service.getEvent.mockResolvedValue({ ...baseEvent, registeredCount: 10 })
     await mountView()

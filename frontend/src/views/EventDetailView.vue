@@ -30,6 +30,7 @@ const pending = ref('')
 const registration = computed(() => (event.value ? registrationState(event.value) : { allowed: false, reason: '' }))
 const photo = computed(() => (event.value ? eventPhotos[eventKind(event.value.mainInterest?.name)] : null))
 const registered = computed(() => event.value?.myRegistration === 'registered')
+const canWithdraw = computed(() => registered.value && event.value.status === 'published' && new Date(event.value.startsAt) >= new Date())
 const canDelete = computed(() => event.value?.status === 'draft' && event.value.registeredCount === 0)
 
 const confirmations = {
@@ -162,8 +163,8 @@ onMounted(load)
       </div>
 
       <div v-if="!event.isOrganizer" class="mt-6">
-        <BaseButton v-if="registered" variant="secondary" :loading="working" @click="withdraw">Me désinscrire</BaseButton>
-        <BaseButton v-else-if="registration.allowed" :loading="working" @click="register">Je m’inscris</BaseButton>
+        <BaseButton v-if="canWithdraw" variant="secondary" :loading="working" @click="withdraw">Me désinscrire</BaseButton>
+        <BaseButton v-else-if="registration.allowed && !registered" :loading="working" @click="register">Je m’inscris</BaseButton>
         <p v-else class="text-lg font-bold text-ink">{{ registration.reason }}</p>
       </div>
 
