@@ -25,6 +25,7 @@ async function mountAt(path) {
     routes: [
       { path: '/contacts', name: 'contacts', component: { template: '<div />' } },
       { path: '/events/:id/people', name: 'event-people', component: { template: '<div />' } },
+      { path: '/members', name: 'members', component: { template: '<div />' } },
       { path: '/people/:userId', name: 'person', component: PersonView },
     ],
   })
@@ -77,10 +78,15 @@ describe('PersonView', () => {
     expect(button('Enregistrer le profil')).toBeTruthy()
   })
 
-  it('explique que le profil n\'est visible qu\'après une sortie en commun', async () => {
+  it('signale un profil introuvable', async () => {
     service.getPerson.mockRejectedValue(new ApiError(404, 'x'))
     await mountAt('/people/9999')
-    expect(wrapper.get('[role="alert"]').text()).toContain('après une sortie en commun')
+    expect(wrapper.get('[role="alert"]').text()).toContain('introuvable')
+  })
+
+  it('ramène à la recherche quand on vient de la liste des membres', async () => {
+    await mountAt('/people/103?from=members')
+    expect(wrapper.get('a').attributes('href')).toBe('/members')
   })
 
   it('ne présente pas de violation d\'accessibilité détectable', async () => {

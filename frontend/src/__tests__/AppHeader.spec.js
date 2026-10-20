@@ -19,7 +19,7 @@ function mountHeader() {
   const stub = { template: '<div />' }
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: ['home', 'login', 'register', 'profile', 'events', 'event-new', 'my-events', 'contacts'].map((name) => ({ path: name === 'home' ? '/' : `/${name}`, name, component: stub })),
+    routes: ['home', 'login', 'register', 'profile', 'events', 'event-new', 'my-events', 'contacts', 'members'].map((name) => ({ path: name === 'home' ? '/' : `/${name}`, name, component: stub })),
   })
   mounted = mount(AppHeader, { global: { plugins: [pinia, router] }, attachTo: document.body })
   return mounted
@@ -45,6 +45,7 @@ describe('AppHeader', () => {
     expect(wrapper.text()).not.toContain('Proposer une sortie')
     expect(wrapper.text()).toContain('Mes sorties')
     expect(wrapper.text()).toContain('Contacts')
+    expect(wrapper.text()).toContain('Membres')
     expect(wrapper.get('a[aria-label]').attributes('href')).toBe('/events')
     await wrapper.find('button').trigger('click')
     await flushPromises()
