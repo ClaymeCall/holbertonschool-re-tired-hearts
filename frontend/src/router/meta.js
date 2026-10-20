@@ -1,5 +1,5 @@
 const SITE_NAME = 'Re-Tired Hearts'
-const DEFAULT_DESCRIPTION = 'Sorties entre seniors : randonnées, ateliers et balades près de chez vous, pour se rencontrer en groupe et se retrouver.'
+const DEFAULT_DESCRIPTION = 'Sorties entre seniors : randonnées, ateliers et balades près de chez vous, puis messages privés pour garder le contact.'
 
 function setMeta(name, content) {
   let tag = document.head.querySelector(`meta[name="${name}"]`)

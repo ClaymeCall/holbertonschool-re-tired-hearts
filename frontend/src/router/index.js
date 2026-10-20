@@ -12,7 +12,7 @@ const routes = [
     path: '/login',
     name: 'login',
     component: LoginView,
-    meta: { title: 'Connexion', description: 'Connectez-vous pour retrouver vos sorties.' },
+    meta: { title: 'Connexion', description: 'Connectez-vous pour retrouver vos sorties et vos conversations.' },
   },
   {
     path: '/register',

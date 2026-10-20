@@ -6,7 +6,7 @@ import { photos } from '../assets/photos'
 const guarantees = [
   'Chaque profil est relu par un modérateur avant d’être visible.',
   'Votre adresse exacte n’est jamais affichée.',
-  'Vous choisissez vos sorties et pouvez vous désinscrire à tout moment.',
+  'Les profils ne se découvrent qu’après une sortie en commun, et vos messages restent privés.',
 ]
 </script>
 
@@ -19,7 +19,7 @@ const guarantees = [
           Sortez, rencontrez, <span class="text-brand">revenez.</span>
         </h1>
         <p class="mt-6 max-w-xl text-xl text-muted">
-          Rejoignez une randonnée, un atelier ou une balade près de chez vous. On se retrouve en groupe, on fait connaissance, et on se revoit à la prochaine sortie.
+          Rejoignez une randonnée, un atelier ou une balade près de chez vous. On se retrouve en groupe, on fait connaissance, et la conversation continue ensuite sur le site.
         </p>
         <div class="mt-8 flex flex-col gap-4 sm:flex-row">
           <BaseButton :to="{ name: 'register' }">Créer un compte</BaseButton>
@@ -55,7 +55,7 @@ const guarantees = [
           Une sortie en groupe, puis une vraie amitié
         </h2>
         <p class="mt-5 text-xl text-muted">
-          Pas de tête-à-tête imposé : on se rencontre tous ensemble, autour d’une activité. Si le courant passe, on se retrouve à la sortie suivante.
+          Pas de tête-à-tête imposé : on se rencontre tous ensemble, autour d’une activité. Si le courant passe, on se retrouve ensuite par messages privés.
         </p>
       </div>
 
