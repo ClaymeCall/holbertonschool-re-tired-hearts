@@ -48,7 +48,7 @@ describe('AppHeader', () => {
     expect(wrapper.text()).toContain('Mon profil')
     expect(wrapper.text()).toContain('Parcourir les sorties')
     expect(wrapper.findAll('a').find((a) => a.text() === 'Parcourir les sorties').attributes('href')).toBe('/events')
-    expect(wrapper.text()).toContain('Proposer une sortie')
+    expect(wrapper.text()).not.toContain('Proposer une sortie')
     expect(wrapper.text()).toContain('Mes sorties')
     expect(wrapper.text()).toContain('Contacts')
     expect(wrapper.get('a[aria-label]').attributes('href')).toBe('/events')
