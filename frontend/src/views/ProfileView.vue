@@ -15,14 +15,18 @@ const formError = ref('')
 const success = ref(false)
 const loading = ref(true)
 const saving = ref(false)
+const isNew = ref(false)
 
 async function load() {
   loading.value = true
   loadError.value = ''
+  isNew.value = false
   try {
     Object.assign(form, await getMyProfile())
-  } catch {
-    loadError.value = 'Impossible de charger votre profil pour le moment.'
+  } catch (failure) {
+    // 404 : le profil n'existe pas encore, ce n'est pas une erreur — on affiche un formulaire vide.
+    if (failure.status === 404) isNew.value = true
+    else loadError.value = 'Impossible de charger votre profil pour le moment.'
   } finally {
     loading.value = false
   }
@@ -50,6 +54,7 @@ async function submit() {
         messaging_enabled: form.messaging_enabled,
       }),
     )
+    isNew.value = false
     success.value = true
   } catch (error) {
     formError.value = messageFor(error.status)
@@ -71,6 +76,9 @@ onMounted(load)
     </div>
 
     <form v-else class="space-y-5 lg:space-y-3" novalidate @submit.prevent="submit">
+      <p v-if="isNew && !success" role="status" class="rounded-lg border-2 border-line bg-mist p-4 text-lg font-semibold text-ink">
+        Vous n’avez pas encore de profil : remplissez ce formulaire pour le créer.
+      </p>
       <AlertMessage v-if="success" variant="success">Votre profil a été enregistré.</AlertMessage>
       <AlertMessage v-if="formError">{{ formError }}</AlertMessage>
 
