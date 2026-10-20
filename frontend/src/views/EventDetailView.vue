@@ -30,7 +30,8 @@ const pending = ref('')
 const registration = computed(() => (event.value ? registrationState(event.value) : { allowed: false, reason: '' }))
 const photo = computed(() => (event.value ? eventPhotos[eventKind(event.value.mainInterest?.name)] : null))
 const registered = computed(() => event.value?.myRegistration === 'registered')
-const canWithdraw = computed(() => registered.value && event.value.status === 'published' && new Date(event.value.startsAt) >= new Date())
+const started = computed(() => new Date(event.value.startsAt) < new Date())
+const canWithdraw = computed(() => registered.value && event.value.status === 'published' && !started.value)
 const canDelete = computed(() => event.value?.status === 'draft' && event.value.registeredCount === 0)
 
 const confirmations = {
@@ -170,12 +171,15 @@ onMounted(load)
 
       <div v-else class="mt-8 border-t border-mist-deep pt-6">
         <h2 class="text-xl font-extrabold text-ink">Vous organisez cette sortie</h2>
+        <p v-if="event.status === 'draft' && started" class="mt-2 text-lg text-ink">
+          La date de début est passée : modifiez la date pour pouvoir publier cette sortie.
+        </p>
         <div class="mt-4 flex flex-wrap gap-3">
-          <BaseButton v-if="event.status === 'draft'" :loading="working" @click="publish">Publier la sortie</BaseButton>
+          <BaseButton v-if="event.status === 'draft' && !started" :loading="working" @click="publish">Publier la sortie</BaseButton>
           <BaseButton v-if="event.status === 'draft' || event.status === 'published'" :to="{ name: 'event-edit', params: { id: event.id } }" variant="secondary">
             Modifier
           </BaseButton>
-          <BaseButton v-if="event.status === 'published'" variant="secondary" @click="pending = 'complete'">Marquer comme terminée</BaseButton>
+          <BaseButton v-if="event.status === 'published' && started" variant="secondary" @click="pending = 'complete'">Marquer comme terminée</BaseButton>
           <BaseButton v-if="event.status === 'published'" variant="secondary" @click="pending = 'cancel'">Annuler la sortie</BaseButton>
           <BaseButton v-if="canDelete" variant="secondary" @click="pending = 'delete'">Supprimer le brouillon</BaseButton>
         </div>
