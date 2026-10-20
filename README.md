@@ -64,15 +64,15 @@ This starts three services, connected on a shared Docker network:
 
 The `backend` and `frontend` source directories are bind-mounted into their containers, so code changes on the host are picked up live, no rebuild required. `backend` waits for `db` to report healthy (via a `pg_isready` healthcheck) before starting.
 
-### 3. Run database migrations
-
-On a fresh Postgres volume there are no tables yet, so run migrations against the `backend` container once the stack is up:
+### 3. Run migrations and load demo data
 
 ```bash
 docker compose exec backend npm run migration:run
+docker compose exec backend npm run seed
 ```
 
-See [`docs/contributing.md`](docs/contributing.md#database-migrations) for details and when to repeat this step.
+The seed is idempotent and prints each demo account's login (including the initial moderator) at the end — see `docs/contributing.md#recreating-a-blank-database-and-reseeding` for details.
+
 
 ### 4. Stop the stack
 

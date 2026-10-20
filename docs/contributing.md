@@ -50,12 +50,19 @@ docker compose exec backend npm run migration:run
 
 Skipping this step is the most common "it worked yesterday" surprise in this project: the stack starts fine, but every request that touches the database (e.g. `POST /v1/auth/register`) fails with `relation "users" does not exist` until migrations are run.
 
-### Recreating a blank database
 
 ```bash
-docker compose down -v   # stops services and removes db_data
+docker compose down -v                        # stops services and removes db_data
 docker compose up --build
 docker compose exec backend npm run migration:run
+docker compose exec backend npm run seed
 ```
 
 Postgres reinitializes using `POSTGRES_DB`/`POSTGRES_USER`/`POSTGRES_PASSWORD` from `.env` (see `docker-compose.yml`).
+`npm run seed` (`backend/src/database/seed.ts`) is idempotent — safe to run again on an already-seeded database,
+it just won't duplicate rows — and populates every entity in `docs/data-model.md` with reproducible demo data:
+an initial moderator account (issue #41), a few demo members in different profile/account states (approved,
+pending, suspended), events across all four lifecycle states, registrations, a demo conversation, and the
+moderation actions behind them. The script prints each demo account's login at the end; see
+`backend/src/database/seeds/users.seed.ts` for the full list and to override the moderator's credentials via
+`SEED_MODERATOR_EMAIL`/`SEED_MODERATOR_PASSWORD`.
