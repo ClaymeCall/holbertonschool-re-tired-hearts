@@ -6,11 +6,28 @@ import { InterestsService } from '../interests/interests.service';
 import { Profile, ProfileModerationStatus } from './entities/profile.entity';
 import { ProfilesService } from './profiles.service';
 
-type RepoMock = { create: jest.Mock; save: jest.Mock; find: jest.Mock; findOne: jest.Mock };
+type RepoMock = {
+  create: jest.Mock;
+  save: jest.Mock;
+  find: jest.Mock;
+  findOne: jest.Mock;
+  createQueryBuilder: jest.Mock;
+};
+type QueryBuilderMock = {
+  leftJoinAndSelect: jest.Mock;
+  innerJoin: jest.Mock;
+  where: jest.Mock;
+  andWhere: jest.Mock;
+  orderBy: jest.Mock;
+  getMany: jest.Mock;
+};
+type UsersRepoMock = { findOneBy: jest.Mock };
 
 describe('ProfilesService', () => {
   let service: ProfilesService;
   let repo: RepoMock;
+  let qb: QueryBuilderMock;
+  let usersRepo: UsersRepoMock;
   let interests: jest.Mocked<Pick<InterestsService, 'findByIds'>>;
 
   const owner: User = {
@@ -41,18 +58,29 @@ describe('ProfilesService', () => {
   };
 
   beforeEach(async () => {
+    qb = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([]),
+    };
     repo = {
       create: jest.fn((input) => ({ ...input })),
       save: jest.fn(async (input) => ({ id: 10, ...input })),
       find: jest.fn(),
       findOne: jest.fn(),
+      createQueryBuilder: jest.fn(() => qb),
     };
+    usersRepo = { findOneBy: jest.fn().mockResolvedValue(owner) };
     interests = { findByIds: jest.fn().mockResolvedValue([]) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProfilesService,
         { provide: getRepositoryToken(Profile), useValue: repo },
+        { provide: getRepositoryToken(User), useValue: usersRepo },
         { provide: InterestsService, useValue: interests },
       ],
     }).compile();
@@ -124,13 +152,23 @@ describe('ProfilesService', () => {
 
   describe('findApproved', () => {
     it('queries only approved profiles', async () => {
-      repo.find.mockResolvedValue([existingProfile]);
+      qb.getMany.mockResolvedValue([existingProfile]);
 
       await service.findApproved();
 
-      expect(repo.find).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { moderationStatus: ProfileModerationStatus.APPROVED } }),
-      );
+      expect(qb.where).toHaveBeenCalledWith('profile.moderationStatus = :status', {
+        status: ProfileModerationStatus.APPROVED,
+      });
+    });
+
+    it('excludes profiles owned by a self_deleted account', async () => {
+      qb.getMany.mockResolvedValue([existingProfile]);
+
+      await service.findApproved();
+
+      expect(qb.andWhere).toHaveBeenCalledWith('owner.accountStatus != :selfDeleted', {
+        selfDeleted: AccountStatus.SELF_DELETED,
+      });
     });
   });
 
@@ -161,10 +199,29 @@ describe('ProfilesService', () => {
 
     it('gives another member the public view of an approved profile', async () => {
       repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.APPROVED });
+      usersRepo.findOneBy.mockResolvedValue(owner);
 
       const result = await service.findByIdForViewer(existingProfile.id, otherMember);
 
       expect(result.isFullView).toBe(false);
+    });
+
+    it('hides an approved profile owned by a self_deleted account from another member as 404', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.APPROVED });
+      usersRepo.findOneBy.mockResolvedValue({ ...owner, accountStatus: AccountStatus.SELF_DELETED });
+
+      await expect(service.findByIdForViewer(existingProfile.id, otherMember)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+    });
+
+    it('still gives a moderator full view of a profile owned by a self_deleted account', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.APPROVED });
+
+      const result = await service.findByIdForViewer(existingProfile.id, moderator);
+
+      expect(result.isFullView).toBe(true);
+      expect(usersRepo.findOneBy).not.toHaveBeenCalled();
     });
 
     it('throws 404 for a non-existent profile id', async () => {

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Interest } from '../interests/entities/interest.entity';
 import { InterestsService } from '../interests/interests.service';
-import { User } from '../users/entities/user.entity';
+import { AccountStatus, User } from '../users/entities/user.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Profile, ProfileModerationStatus } from './entities/profile.entity';
 
@@ -18,6 +18,7 @@ export interface ViewedProfile {
 export class ProfilesService {
   constructor(
     @InjectRepository(Profile) private readonly profiles: Repository<Profile>,
+    @InjectRepository(User) private readonly users: Repository<User>,
     private readonly interests: InterestsService,
   ) {}
 
@@ -55,18 +56,24 @@ export class ProfilesService {
     return this.profiles.save(profile);
   }
 
-  // Discovery list: approved profiles only, per docs/profile-visibility-rules.md. Plain
-  // (unpaginated) for now — pagination is #49.
+  // Discovery list: approved profiles only, per docs/profile-visibility-rules.md. Also
+  // excludes profiles owned by a self_deleted account (same doc, "Who can see a profile
+  // at all") — a self_deleted account's profile is never discoverable, regardless of
+  // moderation_status. Plain (unpaginated) for now — pagination is #49.
   findApproved(): Promise<Profile[]> {
-    return this.profiles.find({
-      where: { moderationStatus: ProfileModerationStatus.APPROVED },
-      relations: ['interests'],
-      order: { id: 'ASC' },
-    });
+    return this.profiles
+      .createQueryBuilder('profile')
+      .leftJoinAndSelect('profile.interests', 'interest')
+      .innerJoin(User, 'owner', 'owner.id = profile.userId')
+      .where('profile.moderationStatus = :status', { status: ProfileModerationStatus.APPROVED })
+      .andWhere('owner.accountStatus != :selfDeleted', { selfDeleted: AccountStatus.SELF_DELETED })
+      .orderBy('profile.id', 'ASC')
+      .getMany();
   }
 
-  // A non-approved profile is 404 to anyone but its owner or a moderator — same
-  // treatment as a non-existent id, so its existence is never revealed.
+  // A non-approved profile, or one owned by a self_deleted account, is 404 to anyone but
+  // its owner or a moderator — same treatment as a non-existent id, so its existence is
+  // never revealed (docs/profile-visibility-rules.md).
   async findByIdForViewer(id: number, viewer: User): Promise<ViewedProfile> {
     const profile = await this.profiles.findOne({ where: { id }, relations: ['interests'] });
     if (!profile) {
@@ -74,8 +81,14 @@ export class ProfilesService {
     }
     const isOwner = profile.userId === viewer.id;
     const isModerator = viewer.isAdmin;
-    if (profile.moderationStatus !== ProfileModerationStatus.APPROVED && !isOwner && !isModerator) {
-      throw new NotFoundException();
+    if (!isOwner && !isModerator) {
+      if (profile.moderationStatus !== ProfileModerationStatus.APPROVED) {
+        throw new NotFoundException();
+      }
+      const owner = await this.users.findOneBy({ id: profile.userId });
+      if (owner?.accountStatus === AccountStatus.SELF_DELETED) {
+        throw new NotFoundException();
+      }
     }
     return { profile, isFullView: isOwner || isModerator };
   }
