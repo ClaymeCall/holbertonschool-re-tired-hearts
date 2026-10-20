@@ -66,6 +66,7 @@ Moderation uses **two independent axes** plus an audit trail.
 | From | To | Done by | Action recorded |
 |---|---|---|---|
 | profile `pending` | `approved` | moderator | `approve_profile` |
+| profile `pending` | `blocked` | moderator | `block_profile` |
 | profile `approved` | `blocked` | moderator | `block_profile` |
 | profile `blocked` | `approved` | moderator | `unblock_profile` (restores `approved`) |
 | account `active` | `suspended` | moderator | `suspend_account` |
@@ -73,8 +74,7 @@ Moderation uses **two independent axes** plus an audit trail.
 | account `active` | `self_deleted` | the user | none (no moderator involved) |
 | event `published` | `cancelled` | moderator, through the moderation route | `cancel_event` |
 
-Any other transition is refused (409). `self_deleted` is final. A blocked profile never goes back to `pending`.
-A new profile is always created `pending`.
+Any other transition is refused (409). `self_deleted` is final: a moderator cannot suspend or reactivate a self-deleted account (`suspend_account` on it answers 409), and a blocked profile never goes back to `pending`. A new profile is always created `pending`.
 
 ### What each state allows (enforced by the API on every request, even with a valid session)
 
@@ -89,8 +89,3 @@ A new profile is always created `pending`.
 The two axes combine: a member needs an `active` account **and** an `approved` profile to use the social features.
 Roles and statuses can never be changed by the member: no request body field can set `is_admin`,
 `moderation_status` or `account_status` (unknown fields are rejected with 400).
-
-## Points to confirm with the team
-
-- Whether a moderator can also suspend or block someone who is already `self_deleted` (not needed by the brief).
-- Whether a moderator may block a `pending` profile directly (the brief only mentions blocking approved profiles).
