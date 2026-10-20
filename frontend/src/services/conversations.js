@@ -6,13 +6,12 @@ import { getPerson } from './people'
 // le front interroge régulièrement. Hypothèses à confirmer avec le backend :
 //  - une conversation est identifiée par l'autre personne (une seule conversation par paire) ;
 //  - on ne peut écrire qu'à une personne rencontrée lors d'une sortie ou à un organisateur (sinon 404),
-//    et jamais si elle refuse les messages (403) ;
+//    ;
 //  - message : { id, content, sentAt, fromMe } ; contenu de 1 à 1000 caractères, texte seul (sinon 400) ;
 //  - liste des conversations : { person { id, displayName, approximateLocation }, lastMessage, unreadCount }.
 
 const delay = () => new Promise((resolve) => setTimeout(resolve, 250))
 const MAX_LENGTH = 1000
-const NO_MESSAGES = new Set([113]) // personnes qui ont désactivé les messages privés
 const REPLIES = ['Avec plaisir !', 'Merci pour votre message, à très bientôt.', 'Bonne idée, on s’organise ça ?']
 
 let nextId = 1
@@ -71,7 +70,6 @@ export async function sendMessage(personId, content) {
   const text = typeof content === 'string' ? content.trim() : ''
   if (text.length < 1 || text.length > MAX_LENGTH) throw new ApiError(400, 'Message invalide.')
   await ensureReachable(id)
-  if (NO_MESSAGES.has(id)) throw new ApiError(403, 'Messages désactivés.')
   const thread = threads.get(id) ?? []
   const sent = message(text, 0, true)
   threads.set(id, [...thread, sent])

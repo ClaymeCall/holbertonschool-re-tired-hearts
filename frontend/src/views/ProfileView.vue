@@ -2,13 +2,12 @@
 import { onMounted, reactive, ref } from 'vue'
 import FormField from '../components/FormField.vue'
 import BaseButton from '../components/BaseButton.vue'
-import CheckboxField from '../components/CheckboxField.vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import PageCard from '../components/PageCard.vue'
 import { photos } from '../assets/photos'
 import { getMyProfile, updateMyProfile } from '../services/profile'
 
-const form = reactive({ display_name: '', bio: '', approximate_location: '', messaging_enabled: true })
+const form = reactive({ display_name: '', bio: '', approximate_location: '' })
 const errors = reactive({ display_name: '' })
 const loadError = ref('')
 const formError = ref('')
@@ -47,7 +46,6 @@ async function submit() {
         display_name: form.display_name.trim(),
         bio: form.bio.trim(),
         approximate_location: form.approximate_location.trim(),
-        messaging_enabled: form.messaging_enabled,
       }),
     )
     success.value = true
@@ -83,8 +81,6 @@ onMounted(load)
         hint="N’indiquez jamais votre adresse exacte."
         autocomplete="address-level2"
       />
-
-      <CheckboxField id="messaging_enabled" v-model="form.messaging_enabled" label="Autoriser les personnes rencontrées à m’écrire" />
 
       <BaseButton type="submit" block :loading="saving">{{ saving ? 'Enregistrement…' : 'Enregistrer' }}</BaseButton>
     </form>
