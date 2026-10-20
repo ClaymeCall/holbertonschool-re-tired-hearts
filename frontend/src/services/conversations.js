@@ -5,8 +5,7 @@ import { getPerson } from './people'
 // Simulation : les routes de messagerie n'existent pas encore côté API, et il n'y a pas de WebSocket :
 // le front interroge régulièrement. Hypothèses à confirmer avec le backend :
 //  - une conversation est identifiée par l'autre personne (une seule conversation par paire) ;
-//  - on ne peut écrire qu'à une personne rencontrée lors d'une sortie ou à un organisateur (sinon 404),
-//    ;
+//  - on ne peut écrire qu'à une personne rencontrée lors d'une sortie ou à un organisateur (sinon 404) ;
 //  - message : { id, content, sentAt, fromMe } ; contenu de 1 à 1000 caractères, texte seul (sinon 400) ;
 //  - liste des conversations : { person { id, displayName, approximateLocation }, lastMessage, unreadCount }.
 
