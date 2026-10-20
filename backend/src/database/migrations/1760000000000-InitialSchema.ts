@@ -27,7 +27,10 @@ export class InitialSchema1760000000000 implements MigrationInterface {
         suspended_at     timestamptz,
         created_at       timestamptz NOT NULL DEFAULT now(),
         CONSTRAINT users_self_deleted_consistent
-          CHECK ((account_status = 'self_deleted') = (self_deleted_at IS NOT NULL)),
+          CHECK ((account_status = 'self_deleted' AND self_deleted_at IS NOT NULL)
+          OR (account_status = 'active' AND self_deleted_at IS NULL)
+          OR account_status = 'suspended'
+        ),
         CONSTRAINT users_suspended_consistent
           CHECK ((account_status = 'suspended') = (suspended_at IS NOT NULL))
       )`);
