@@ -4,11 +4,13 @@ import AlertMessage from './AlertMessage.vue'
 import BaseButton from './BaseButton.vue'
 import { usePolling } from '../composables/usePolling'
 import { getMessages, markRead, sendMessage } from '../services/conversations'
+import { getMyProfile } from '../services/profile'
 import { useUnreadStore } from '../stores/unread'
 
 const props = defineProps({
   personId: { type: Number, required: true },
   personName: { type: String, required: true },
+  acceptsMessages: { type: Boolean, default: true },
 })
 
 const MAX_LENGTH = 1000
@@ -22,10 +24,17 @@ const loadError = ref('')
 const sendError = ref('')
 const sending = ref(false)
 const log = ref(null)
+const myMessagingEnabled = ref(true)
 
 const length = computed(() => draft.value.trim().length)
 const tooLong = computed(() => length.value > MAX_LENGTH)
-const canSend = computed(() => length.value > 0 && !tooLong.value && !sending.value)
+// Si l'un des deux a désactivé les messages, l'envoi est impossible (l'historique reste lisible).
+const blockedReason = computed(() => {
+  if (!myMessagingEnabled.value) return 'own'
+  if (!props.acceptsMessages) return 'other'
+  return ''
+})
+const canSend = computed(() => !blockedReason.value && length.value > 0 && !tooLong.value && !sending.value)
 const timeFormat = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })
 
 async function scrollToEnd() {
@@ -58,7 +67,7 @@ async function refresh({ first = false } = {}) {
 }
 
 function messageFor(failure) {
-  if (failure.status === 403) return `${props.personName} n’accepte pas de messages pour le moment.`
+  if (failure.status === 403) return `Message non envoyé : ${props.personName} n’accepte pas de messages pour le moment, ou vous avez désactivé les vôtres.`
   if (failure.status === 400) return 'Votre message doit contenir entre 1 et 1000 caractères.'
   if (failure.status === 404) return 'Vous ne pouvez pas écrire à cette personne.'
   return 'Message non envoyé. Réessayez dans un instant.'
@@ -80,7 +89,14 @@ async function send() {
 }
 
 usePolling(() => refresh(), REFRESH_MS)
-onMounted(() => refresh({ first: true }))
+onMounted(async () => {
+  try {
+    myMessagingEnabled.value = (await getMyProfile()).messaging_enabled !== false
+  } catch {
+    // Sans réponse, on laisse le serveur refuser l'envoi si besoin.
+  }
+  refresh({ first: true })
+})
 </script>
 
 <template>
@@ -98,7 +114,7 @@ onMounted(() => refresh({ first: true }))
         :aria-label="`Messages avec ${personName}`"
         class="max-h-[26rem] min-h-[14rem] flex-1 space-y-3 overflow-y-auto p-5"
       >
-        <p v-if="messages.length === 0" class="text-lg text-muted">Aucun message pour l’instant. Dites bonjour !</p>
+        <p v-if="messages.length === 0" class="text-lg text-muted">Aucun message pour l’instant.{{ blockedReason ? '' : ' Dites bonjour !' }}</p>
         <div v-for="item in messages" :key="item.id" class="flex" :class="item.fromMe ? 'justify-end' : 'justify-start'">
           <div class="max-w-[85%] rounded-lg px-4 py-2" :class="item.fromMe ? 'bg-brand text-white' : 'bg-mist text-ink'">
             <p class="sr-only">{{ item.fromMe ? 'Vous' : personName }}, {{ timeFormat.format(new Date(item.sentAt)) }}</p>
@@ -112,14 +128,22 @@ onMounted(() => refresh({ first: true }))
 
       <form class="space-y-3 border-t border-mist-deep p-5" novalidate @submit.prevent="send">
         <div aria-live="polite"><AlertMessage v-if="sendError">{{ sendError }}</AlertMessage></div>
-        <label for="chat-message" class="block text-lg font-semibold text-ink">Votre message</label>
+        <p v-if="blockedReason" id="chat-blocked" role="status" class="rounded-lg border-2 border-line bg-mist p-4 text-lg font-semibold text-ink">
+          <template v-if="blockedReason === 'other'">Cette personne n’accepte pas les messages pour le moment.</template>
+          <template v-else>
+            Vous avez désactivé les messages : personne ne peut vous écrire, et vous ne pouvez pas écrire non plus.
+            <router-link :to="{ name: 'profile' }" class="font-bold text-brand underline">Les réactiver dans mon profil</router-link>
+          </template>
+        </p>
+        <label for="chat-message" class="block text-lg font-semibold" :class="blockedReason ? 'text-muted' : 'text-ink'">Votre message</label>
         <textarea
           id="chat-message"
           v-model="draft"
           rows="3"
           :aria-invalid="tooLong ? 'true' : 'false'"
-          aria-describedby="chat-count"
-          class="block w-full rounded-xl border-2 border-line bg-white px-4 py-2.5 text-lg text-ink aria-[invalid=true]:border-danger focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2"
+          :disabled="Boolean(blockedReason)"
+          :aria-describedby="blockedReason ? 'chat-blocked chat-count' : 'chat-count'"
+          class="block w-full rounded-xl border-2 border-line bg-white px-4 py-2.5 text-lg text-ink aria-[invalid=true]:border-danger focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-mist-deep disabled:bg-mist disabled:text-muted"
         ></textarea>
         <div class="flex flex-wrap items-center justify-between gap-3">
           <p id="chat-count" class="text-base" :class="tooLong ? 'font-bold text-danger' : 'text-muted'">{{ length }}/{{ MAX_LENGTH }}</p>

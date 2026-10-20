@@ -89,7 +89,7 @@ onMounted(load)
         </div>
       </article>
 
-      <div class="lg:col-span-7"><ChatPanel :person-id="person.id" :person-name="person.displayName" /></div>
+      <div class="lg:col-span-7"><ChatPanel :person-id="person.id" :person-name="person.displayName" :accepts-messages="person.acceptsMessages !== false" /></div>
     </div>
   </section>
 </template>

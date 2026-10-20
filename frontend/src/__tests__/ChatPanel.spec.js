@@ -1,18 +1,22 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia } from 'pinia'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import axe from 'axe-core'
 import ChatPanel from '../components/ChatPanel.vue'
 import { ApiError } from '../services/api'
 import * as chat from '../services/conversations'
+import * as profile from '../services/profile'
 
 vi.mock('../services/conversations')
+vi.mock('../services/profile')
 
 const msg = (id, content, fromMe) => ({ id, content, fromMe, sentAt: new Date().toISOString() })
 
 let wrapper
-async function mountPanel() {
-  wrapper = mount(ChatPanel, { props: { personId: 2, personName: 'Colette' }, global: { plugins: [createPinia()] }, attachTo: document.body })
+async function mountPanel(props = {}) {
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/profile', name: 'profile', component: { template: '<div />' } }] })
+  wrapper = mount(ChatPanel, { props: { personId: 2, personName: 'Colette', ...props }, global: { plugins: [createPinia(), router] }, attachTo: document.body })
   await flushPromises()
 }
 const send = () => wrapper.findAll('button').find((b) => b.text().startsWith('Envoy'))
@@ -23,6 +27,7 @@ describe('ChatPanel', () => {
     chat.getMessages.mockResolvedValue([msg(1, 'Bonjour !', false), msg(2, 'Salut Colette', true)])
     chat.markRead.mockResolvedValue()
     chat.listConversations.mockResolvedValue([])
+    profile.getMyProfile.mockResolvedValue({ messaging_enabled: true })
   })
   afterEach(() => {
     wrapper?.unmount()
@@ -75,6 +80,22 @@ describe('ChatPanel', () => {
     await wrapper.get('form').trigger('submit')
     await flushPromises()
     expect(wrapper.get('[role="alert"]').text()).toContain('n’accepte pas de messages')
+  })
+
+  it('grise la discussion quand la personne n\'accepte pas les messages, mais garde l\'historique', async () => {
+    await mountPanel({ acceptsMessages: false })
+    expect(wrapper.text()).toContain('Cette personne n’accepte pas les messages pour le moment.')
+    expect(wrapper.get('textarea').attributes('disabled')).toBeDefined()
+    expect(send().attributes('disabled')).toBeDefined()
+    expect(wrapper.text()).toContain('Bonjour !')
+  })
+
+  it('grise la discussion quand j\'ai moi-même désactivé les messages, avec un lien vers mon profil', async () => {
+    profile.getMyProfile.mockResolvedValue({ messaging_enabled: false })
+    await mountPanel()
+    expect(wrapper.text()).toContain('Vous avez désactivé les messages')
+    expect(wrapper.get('textarea').attributes('disabled')).toBeDefined()
+    expect(wrapper.findAll('a').find((a) => a.text().includes('Les réactiver')).attributes('href')).toBe('/profile')
   })
 
   it('affiche les nouveaux messages au rafraîchissement automatique, sans WebSocket', async () => {

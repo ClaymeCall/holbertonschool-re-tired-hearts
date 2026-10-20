@@ -5,11 +5,14 @@ import { listMetPersonIds, listOrganizerIds } from './events'
 // Simulation : ces routes n'existent pas encore côté API. Hypothèses à confirmer avec le backend :
 //  - un profil n'est visible que pour une personne rencontrée lors d'une sortie (ou un organisateur) ;
 //    sinon 404, comme un profil inexistant ;
-//  - profil : { id, displayName, bio, approximateLocation, interests [{ id, name }], isContact } ;
+//  - profil : { id, displayName, bio, approximateLocation, interests [{ id, name }], isContact, acceptsMessages } ;
+//    `acceptsMessages` est calculé côté serveur (sans exposer le réglage lui-même) pour griser la discussion ;
 //  - contacts : enregistrer / retirer un profil, et lister mes contacts enregistrés.
 
 const delay = () => new Promise((resolve) => setTimeout(resolve, 250))
 const saved = new Set([2])
+const NO_MESSAGES = new Set([113]) // personnes qui ont désactivé les messages
+export const refusesMessages = (id) => NO_MESSAGES.has(Number(id))
 const notFound = () => new ApiError(404, 'Introuvable.')
 
 function visiblePerson(userId) {
@@ -20,7 +23,12 @@ function visiblePerson(userId) {
   return person
 }
 
-const present = (person) => ({ ...person, interests: person.interests.map((interest) => ({ ...interest })), isContact: saved.has(person.id) })
+const present = (person) => ({
+  ...person,
+  interests: person.interests.map((interest) => ({ ...interest })),
+  isContact: saved.has(person.id),
+  acceptsMessages: !NO_MESSAGES.has(person.id),
+})
 
 export async function getPerson(userId) {
   await delay()

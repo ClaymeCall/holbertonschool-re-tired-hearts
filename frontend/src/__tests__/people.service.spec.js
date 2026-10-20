@@ -11,6 +11,14 @@ describe('profils des personnes rencontrées (règles simulées)', () => {
     expect(Array.isArray(person.interests)).toBe(true)
   })
 
+  it('indique si la personne accepte les messages', async () => {
+    const people = await listParticipants(33)
+    const daniel = people.find((person) => person.id === 113)
+    expect(daniel).toBeTruthy()
+    expect((await getPerson(113)).acceptsMessages).toBe(false)
+    expect((await getPerson(people[1].id)).acceptsMessages).toBe(true)
+  })
+
   it('cache le profil d\'une personne jamais rencontrée, comme s\'il n\'existait pas', async () => {
     await expect(getPerson(9999)).rejects.toMatchObject({ status: 404 })
   })

@@ -1,6 +1,6 @@
 // Simulation : GET/PATCH /v1/profiles/me ne sont pas encore implémentées.
 // Champs issus de docs/data-model.md (Profile). Les intérêts viendront avec GET /v1/interests.
-let current = { display_name: '', bio: '', approximate_location: '' }
+let current = { display_name: '', bio: '', approximate_location: '', messaging_enabled: true }
 
 const delay = () => new Promise((resolve) => setTimeout(resolve, 400))
 
@@ -14,3 +14,6 @@ export async function updateMyProfile(data) {
   current = { ...current, ...data }
   return { ...current }
 }
+
+// Lecture synchrone pour les services simulés de messagerie (le vrai backend applique la règle lui-même).
+export const isMessagingEnabled = () => current.messaging_enabled !== false

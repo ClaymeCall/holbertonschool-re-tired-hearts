@@ -6,10 +6,12 @@ import PersonView from '../views/PersonView.vue'
 import { ApiError } from '../services/api'
 import * as service from '../services/people'
 import * as chat from '../services/conversations'
+import * as myProfile from '../services/profile'
 import { createPinia } from 'pinia'
 
 vi.mock('../services/people')
 vi.mock('../services/conversations')
+vi.mock('../services/profile')
 
 const person = (extra = {}) => ({
   id: 103,
@@ -27,6 +29,7 @@ async function mountAt(path) {
     history: createMemoryHistory(),
     routes: [
       { path: '/contacts', name: 'contacts', component: { template: '<div />' } },
+      { path: '/profile', name: 'profile', component: { template: '<div />' } },
       { path: '/events/:id/people', name: 'event-people', component: { template: '<div />' } },
       { path: '/events/:id', name: 'event-detail', component: { template: '<div />' } },
       { path: '/people/:userId', name: 'person', component: PersonView },
@@ -46,6 +49,7 @@ describe('PersonView', () => {
     chat.getMessages.mockResolvedValue([])
     chat.markRead.mockResolvedValue()
     chat.listConversations.mockResolvedValue([])
+    myProfile.getMyProfile.mockResolvedValue({ messaging_enabled: true })
   })
   afterEach(() => wrapper?.unmount())
 
@@ -61,6 +65,13 @@ describe('PersonView', () => {
     expect(wrapper.get('article').text()).toContain('Henri')
     expect(wrapper.get('[aria-label="Discussion avec Henri"]').exists()).toBe(true)
     expect(chat.getMessages).toHaveBeenCalledWith(103)
+  })
+
+  it('grise la discussion quand la personne n\'accepte pas les messages', async () => {
+    service.getPerson.mockResolvedValue(person({ acceptsMessages: false }))
+    await mountAt('/people/113')
+    expect(wrapper.text()).toContain('Cette personne n’accepte pas les messages pour le moment.')
+    expect(wrapper.get('textarea').attributes('disabled')).toBeDefined()
   })
 
   it('ramène à la sortie quand on vient du bouton « Contacter l\'organisateur »', async () => {
