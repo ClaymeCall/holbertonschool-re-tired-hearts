@@ -1,5 +1,5 @@
 import * as request from 'supertest';
-import { Actor, TestContext, createActor, createTestApp, resetData } from './test-app';
+import { Actor, TestContext, createActor, createTestApp, profileIdOf, resetData } from './test-app';
 
 // Integration tests of the events API: real HTTP requests through the whole application
 // (guards, validation pipe, services) against a real PostgreSQL test database.
@@ -87,9 +87,20 @@ describe('Events API (integration)', () => {
         isOrganizer: true,
         myRegistration: null,
         mainInterest: { id: 3 },
-        organizer: { id: organizer.id, displayName: `Member ${organizer.id}` },
+        organizer: { id: await profileIdOf(ctx, organizer), displayName: `Member ${organizer.id}` },
       });
       expect(res.body.organizer).not.toHaveProperty('email');
+    });
+
+    it('designates the organizer by profile id, so that the link to their profile works', async () => {
+      const id = await createEvent(organizer);
+      const { body } = await call('get', `/events/${id}`, alice).expect(200);
+      const profileId = await profileIdOf(ctx, organizer);
+
+      expect(profileId).not.toBe(organizer.id); // the two id spaces differ in the tests
+      expect(body.organizer.id).toBe(profileId);
+      const profile = await call('get', `/profiles/${body.organizer.id}`, alice).expect(200);
+      expect(profile.body.displayName).toBe(body.organizer.displayName);
     });
 
     it.each([

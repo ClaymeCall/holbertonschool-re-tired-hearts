@@ -77,6 +77,9 @@ export async function resetData(dataSource: DataSource): Promise<void> {
     `TRUNCATE moderation_actions, messages, conversations, event_registrations, events,
               profile_interests, profiles, users RESTART IDENTITY CASCADE`,
   );
+  // User ids start at 1000 while profile ids start at 1: the two id spaces never coincide, so a
+  // test fails if the API ever confuses a user id with a profile id.
+  await dataSource.query(`ALTER TABLE users ALTER COLUMN id RESTART WITH 1000`);
 }
 
 // Inserts a member (and its profile) and returns the session cookie the real login would set.
@@ -99,4 +102,10 @@ export async function createActor(ctx: TestContext, options: ActorOptions = {}):
     );
   }
   return { id, cookie: `access_token=${ctx.auth.signToken({ id } as User)}` };
+}
+
+// The id other members use to designate a person (the profile id shown by discovery).
+export async function profileIdOf(ctx: TestContext, actor: Actor): Promise<number> {
+  const [row] = await ctx.dataSource.query(`SELECT id FROM profiles WHERE user_id = $1`, [actor.id]);
+  return row.id;
 }
