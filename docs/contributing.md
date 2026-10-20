@@ -38,15 +38,22 @@ feat(frontend): add router, home view and api client with tests
 build(frontend): add vue-router, pinia and vitest tooling
 ```
 
-## Recreating a blank database
+## Recreating a blank database and reseeding
 
-No migration/ORM tooling exists yet, so the database is reset by dropping and recreating the Postgres volume:
+Drop and recreate the Postgres volume, then run the versioned migrations and the demo seed:
 
 ```bash
-docker compose down -v   # stops services and removes db_data
+docker compose down -v                        # stops services and removes db_data
 docker compose up --build
+docker compose exec backend npm run migration:run
+docker compose exec backend npm run seed
 ```
 
 Postgres reinitializes using `POSTGRES_DB`/`POSTGRES_USER`/`POSTGRES_PASSWORD` from `.env` (see `docker-compose.yml`).
-
-This procedure is temporary — once versioned migrations and seed data are added, this section should be updated to describe the migrate/reset/seed commands instead.
+`npm run seed` (`backend/src/database/seed.ts`) is idempotent — safe to run again on an already-seeded database,
+it just won't duplicate rows — and populates every entity in `docs/data-model.md` with reproducible demo data:
+an initial moderator account (issue #41), a few demo members in different profile/account states (approved,
+pending, suspended), events across all four lifecycle states, registrations, a demo conversation, and the
+moderation actions behind them. The script prints each demo account's login at the end; see
+`backend/src/database/seeds/users.seed.ts` for the full list and to override the moderator's credentials via
+`SEED_MODERATOR_EMAIL`/`SEED_MODERATOR_PASSWORD`.
