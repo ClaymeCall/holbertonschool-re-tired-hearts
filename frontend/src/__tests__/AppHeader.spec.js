@@ -13,6 +13,8 @@ let mounted
 
 afterEach(() => mounted?.unmount())
 
+let currentRouter
+
 function mountHeader() {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -21,6 +23,7 @@ function mountHeader() {
     history: createMemoryHistory(),
     routes: ['home', 'login', 'register', 'profile'].map((name) => ({ path: name === 'home' ? '/' : `/${name}`, name, component: stub })),
   })
+  currentRouter = router
   mounted = mount(AppHeader, { global: { plugins: [pinia, router] }, attachTo: document.body })
   return mounted
 }
@@ -39,10 +42,34 @@ describe('AppHeader', () => {
     useSessionStore().user = { id: 1 }
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Mon profil')
-    await wrapper.find('button').trigger('click')
+    await wrapper.findAll('button').find((b) => b.text() === 'Se déconnecter').trigger('click')
     await flushPromises()
     expect(useSessionStore().isAuthenticated).toBe(false)
     expect(auth.logout).toHaveBeenCalled()
+  })
+
+  it('propose un menu déroulant sur mobile qui s\'ouvre et se ferme', async () => {
+    const wrapper = mountHeader()
+    const toggle = wrapper.get('button[aria-controls="main-nav"]')
+    const nav = wrapper.get('#main-nav')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(nav.classes()).toContain('hidden')
+    await toggle.trigger('click')
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    expect(nav.classes()).toContain('flex')
+    await toggle.trigger('click')
+    expect(nav.classes()).toContain('hidden')
+  })
+
+  it('ferme le menu avec Échap et après un changement de page', async () => {
+    const wrapper = mountHeader()
+    const toggle = wrapper.get('button[aria-controls="main-nav"]')
+    await toggle.trigger('click')
+    await wrapper.get('header').trigger('keydown', { key: 'Escape' })
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    await toggle.trigger('click')
+    await currentRouter.push('/login')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
   })
 
   it('ne présente pas de violation d\'accessibilité détectable', async () => {
