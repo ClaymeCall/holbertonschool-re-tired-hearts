@@ -6,6 +6,8 @@ import { ApiError } from '../services/api'
 
 vi.mock('../services/auth')
 
+const member = { id: 1, email: 'a@b.fr', accountStatus: 'active' }
+
 describe('navigation', () => {
   beforeEach(async () => {
     vi.resetAllMocks()
@@ -20,7 +22,7 @@ describe('navigation', () => {
   })
 
   it('renvoie un visiteur vers la connexion pour une page privée', async () => {
-    await router.push('/profile')
+    await router.push('/events')
     expect(router.currentRoute.value.name).toBe('login')
   })
 
@@ -37,8 +39,15 @@ describe('navigation', () => {
 
   it('retrouve la session au chargement et laisse passer un membre connecté', async () => {
     setActivePinia(createPinia())
-    auth.fetchCurrentUser.mockResolvedValue({ id: 1, email: 'a@b.fr', accountStatus: 'active' })
+    auth.fetchCurrentUser.mockResolvedValue(member)
     await router.push('/profile')
     expect(router.currentRoute.value.name).toBe('profile')
+  })
+
+  it('renvoie un membre connecté vers les sorties quand il va sur l\'accueil', async () => {
+    setActivePinia(createPinia())
+    auth.fetchCurrentUser.mockResolvedValue(member)
+    await router.push('/')
+    expect(router.currentRoute.value.name).toBe('events')
   })
 })
