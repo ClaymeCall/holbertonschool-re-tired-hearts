@@ -322,6 +322,13 @@ describe('Events API (integration)', () => {
       await call('delete', `/events/${id}/registrations/me`, alice).expect(409);
     });
 
+    it('refuses a second withdrawal: a withdrawn member is not registered any more', async () => {
+      const id = await createEvent(organizer);
+      await call('post', `/events/${id}/registrations`, alice).expect(201);
+      await call('delete', `/events/${id}/registrations/me`, alice).expect(200);
+      await call('delete', `/events/${id}/registrations/me`, alice).expect(409);
+    });
+
     it('forbids the organizer to register for their own event', async () => {
       const id = await createEvent(organizer);
       await call('post', `/events/${id}/registrations`, organizer).expect(403);
