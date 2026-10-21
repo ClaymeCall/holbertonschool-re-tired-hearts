@@ -95,6 +95,7 @@ Errors use the NestJS shape `{ "statusCode": 409, "message": "…", "error": "Co
 | `DELETE /v1/events/:id` | owner (draft without registrations only) | 204 | 403, 404, 409 |
 | `POST /v1/events/:id/registrations` | approved member, not the organizer | 201 | 401, 403, 404, 409 (full, closed, already registered) |
 | `DELETE /v1/events/:id/registrations/me` | member | 200 (status `withdrawn`) | 401, 404, 409 (not registered, or event no longer published) |
+| `GET /v1/places/search?q=` | member | 200 (always: `{ available, suggestions }`, see `docs/external-api.md`) | 400, 401 |
 | `GET /v1/conversations` | approved member | 200 (my conversations, most recent first, with `lastMessage` and `unreadCount`) | 401, 403 |
 | `GET /v1/conversations/unread-count` | approved member | 200 (`{ unreadCount }`) | 401, 403 |
 | `GET /v1/conversations/with/:personId/messages` | approved member | 200 (oldest first, `?limit=`, default and maximum 200) | 400, 401, 403, 404 |
