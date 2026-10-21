@@ -16,6 +16,10 @@ export async function getMyProfile() {
 
 export async function updateMyProfile(data) {
   await delay()
-  current = { display_name: '', bio: '', approximate_location: '', ...current, ...data }
+  current = { display_name: '', bio: '', approximate_location: '', messaging_enabled: true, ...current, ...data }
   return { ...current }
 }
+
+// Lecture synchrone pour les services simulés de messagerie (le vrai backend applique la règle lui-même).
+// Sans profil enregistré, les messages restent activés (valeur par défaut).
+export const isMessagingEnabled = () => current?.messaging_enabled !== false

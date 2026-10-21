@@ -1,16 +1,24 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { usePolling } from '../composables/usePolling'
 import { useSessionStore } from '../stores/session'
+import { useUnreadStore } from '../stores/unread'
+import UnreadBadge from './UnreadBadge.vue'
 import AppLogo from './AppLogo.vue'
 
 const session = useSessionStore()
 const router = useRouter()
+const unread = useUnreadStore()
 const route = useRoute()
 
 // Sur mobile, la navigation est un menu déroulant ; sur grand écran, elle reste affichée en ligne.
 const menuOpen = ref(false)
 watch(() => route.fullPath, () => (menuOpen.value = false))
+
+// Messages non lus : rafraîchis toutes les 30 secondes tant que le membre est connecté (pas de WebSocket).
+watch(() => session.isAuthenticated, (connected) => (connected ? unread.refresh() : unread.reset()), { immediate: true })
+usePolling(() => session.isAuthenticated && unread.refresh(), 30000)
 
 async function logout() {
   await session.logout().catch(() => {})
@@ -56,6 +64,11 @@ const solid = `inline-flex min-h-14 w-full items-center rounded-full bg-brand px
         <template v-if="session.isAuthenticated">
           <router-link :to="{ name: 'events' }" :class="ghost">Parcourir les sorties</router-link>
           <router-link :to="{ name: 'my-events' }" :class="ghost">Mes sorties</router-link>
+          <router-link :to="{ name: 'members' }" :class="ghost">Membres</router-link>
+          <router-link :to="{ name: 'contacts' }" :class="[ghost, 'gap-2']">
+            Contacts
+            <UnreadBadge :count="unread.total" />
+          </router-link>
           <router-link :to="{ name: 'profile' }" :class="ghost">Mon profil</router-link>
           <button type="button" :class="solid" @click="logout">Se déconnecter</button>
         </template>

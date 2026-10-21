@@ -1,19 +1,23 @@
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
   IsBoolean,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
-  MinLength,
 } from 'class-validator';
+
+const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 
 export class UpdateProfileDto {
   @ApiProperty({ minLength: 1, maxLength: 60, example: 'Jane D.' })
+  @Transform(trim)
   @IsString()
-  @MinLength(1)
+  @IsNotEmpty()
   @MaxLength(60)
   displayName: string;
 
@@ -24,8 +28,9 @@ export class UpdateProfileDto {
   bio?: string;
 
   @ApiProperty({ minLength: 1, maxLength: 100, example: 'Lyon' })
+  @Transform(trim)
   @IsString()
-  @MinLength(1)
+  @IsNotEmpty()
   @MaxLength(100)
   approximateLocation: string;
 

@@ -66,3 +66,20 @@ pending, suspended), events across all four lifecycle states, registrations, a d
 moderation actions behind them. The script prints each demo account's login at the end; see
 `backend/src/database/seeds/users.seed.ts` for the full list and to override the moderator's credentials via
 `SEED_MODERATOR_EMAIL`/`SEED_MODERATOR_PASSWORD`.
+
+## Running the tests
+
+Unit tests (no database needed):
+
+```bash
+docker compose exec backend npm test
+```
+
+Integration tests (real HTTP requests against a real PostgreSQL database):
+
+```bash
+docker compose exec backend npm run test:integration
+```
+
+They use a separate database named `<DB_NAME>_test`, created automatically, and refuse to run on any other database, so development data is never touched.
+

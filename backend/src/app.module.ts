@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { databaseConfig } from './config/database.config';
 import { EventsModule } from './events/events.module';
 import { InterestsModule } from './interests/interests.module';
+import { MessagingModule } from './messaging/messaging.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { ProfilesModule } from './profiles/profiles.module';
 
@@ -16,6 +17,7 @@ import { ProfilesModule } from './profiles/profiles.module';
     ProfilesModule,
     InterestsModule,
     EventsModule,
+    MessagingModule,
     ModerationModule,
   ],
   controllers: [AppController],
