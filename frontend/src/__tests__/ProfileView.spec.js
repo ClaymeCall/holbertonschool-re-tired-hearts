@@ -7,7 +7,7 @@ import * as profile from '../services/profile'
 
 vi.mock('../services/profile')
 
-const base = { display_name: 'Jeanne', bio: '', approximate_location: 'Lyon', messaging_enabled: true }
+const base = { displayName: 'Jeanne', bio: '', approximateLocation: 'Lyon', messagingEnabled: true }
 
 async function mountView() {
   const wrapper = mount(ProfileView, { attachTo: document.body })
@@ -23,7 +23,7 @@ describe('ProfileView', () => {
 
   it('pré-remplit le formulaire avec le profil chargé', async () => {
     const wrapper = await mountView()
-    expect(wrapper.get('#display_name').element.value).toBe('Jeanne')
+    expect(wrapper.get('#displayName').element.value).toBe('Jeanne')
   })
 
   it('affiche un formulaire vide, sans erreur, quand le profil n\'existe pas encore (404)', async () => {
@@ -31,14 +31,14 @@ describe('ProfileView', () => {
     const wrapper = await mountView()
     expect(wrapper.find('[role="alert"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Vous n’avez pas encore de profil')
-    expect(wrapper.get('#display_name').element.value).toBe('')
+    expect(wrapper.get('#displayName').element.value).toBe('')
   })
 
   it('crée le profil au premier enregistrement puis n\'affiche plus l\'invitation', async () => {
     profile.getMyProfile.mockRejectedValue(new ApiError(404, 'x'))
-    profile.updateMyProfile.mockResolvedValue({ ...base, display_name: 'Jeanne' })
+    profile.updateMyProfile.mockResolvedValue({ ...base, displayName: 'Jeanne' })
     const wrapper = await mountView()
-    await wrapper.get('#display_name').setValue('Jeanne')
+    await wrapper.get('#displayName').setValue('Jeanne')
     await wrapper.get('form').trigger('submit')
     await flushPromises()
     expect(profile.updateMyProfile).toHaveBeenCalled()
@@ -53,30 +53,30 @@ describe('ProfileView', () => {
   })
 
   it('permet de refuser les messages des personnes rencontrées et explique la conséquence', async () => {
-    profile.updateMyProfile.mockResolvedValue({ ...base, messaging_enabled: false })
+    profile.updateMyProfile.mockResolvedValue({ ...base, messagingEnabled: false })
     const wrapper = await mountView()
     expect(wrapper.text()).toContain('personne ne peut vous écrire')
-    await wrapper.get('#messaging_enabled').setValue(false)
+    await wrapper.get('#messagingEnabled').setValue(false)
     await wrapper.get('form').trigger('submit')
     await flushPromises()
-    expect(profile.updateMyProfile).toHaveBeenCalledWith({ ...base, messaging_enabled: false })
+    expect(profile.updateMyProfile).toHaveBeenCalledWith({ ...base, messagingEnabled: false })
   })
 
   it('exige un nom affiché', async () => {
     const wrapper = await mountView()
-    await wrapper.get('#display_name').setValue('  ')
+    await wrapper.get('#displayName').setValue('  ')
     await wrapper.get('form').trigger('submit')
     expect(wrapper.text()).toContain('Saisissez le nom affiché')
     expect(profile.updateMyProfile).not.toHaveBeenCalled()
   })
 
   it('enregistre et confirme', async () => {
-    profile.updateMyProfile.mockResolvedValue({ ...base, display_name: 'Jeanne D' })
+    profile.updateMyProfile.mockResolvedValue({ ...base, displayName: 'Jeanne D' })
     const wrapper = await mountView()
-    await wrapper.get('#display_name').setValue('Jeanne D')
+    await wrapper.get('#displayName').setValue('Jeanne D')
     await wrapper.get('form').trigger('submit')
     await flushPromises()
-    expect(profile.updateMyProfile).toHaveBeenCalledWith({ ...base, display_name: 'Jeanne D' })
+    expect(profile.updateMyProfile).toHaveBeenCalledWith({ ...base, displayName: 'Jeanne D' })
     expect(wrapper.text()).toContain('Votre profil a été enregistré.')
   })
 

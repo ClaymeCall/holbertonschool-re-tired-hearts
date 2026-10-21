@@ -91,7 +91,7 @@ onMounted(load)
         </div>
       </article>
 
-      <div class="lg:col-span-7"><ChatPanel :person-id="person.id" :person-name="person.displayName" :accepts-messages="person.acceptsMessages !== false" :can-message="person.canMessage !== false" /></div>
+      <div class="lg:col-span-7"><ChatPanel :person-id="person.id" :person-name="person.displayName" :accepts-messages="person.messagingEnabled !== false" /></div>
     </div>
   </section>
 </template>
