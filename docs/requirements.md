@@ -21,6 +21,7 @@ Resolutions for gaps the brief doesn't address explicitly:
 | OpenAPI | Approved — generate via NestJS's built-in `@nestjs/swagger` | Phase 0 |
 | Automated DB backup | **Declined** — reset-and-reseed (already required) is sufficient | — |
 | Moderator contact-link bypass | Approved — a moderator (`is_admin`) can start a conversation with any member without a shared event or organizer link; the recipient's own conditions (active account, approved profile, `messaging_enabled`) still apply. Does not grant access to read other members' conversations. | Phase 3 (`docs/messaging-rules.md`) |
+| Expose `messaging_enabled` to other members | Approved — returned on the public profile view (`GET /v1/profiles`, `GET /v1/profiles/:id`) so the interface can grey out message sending. A UI hint only; the API still enforces the full contact rule. | Phase 3 (`docs/profile-visibility-rules.md`) |
 
 ## Cross-cutting principles
 

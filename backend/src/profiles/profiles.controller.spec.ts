@@ -66,14 +66,20 @@ describe('ProfilesController', () => {
     });
   });
 
-  it('discover returns the public view, without moderation status or messaging flag', async () => {
+  it('discover returns the public view, with the messaging flag but without moderation status', async () => {
     const body = await controller.discover();
 
     expect(body).toEqual([
-      { id: profile.id, displayName: profile.displayName, bio: profile.bio, approximateLocation: profile.approximateLocation, interests: [] },
+      {
+        id: profile.id,
+        displayName: profile.displayName,
+        bio: profile.bio,
+        approximateLocation: profile.approximateLocation,
+        messagingEnabled: profile.messagingEnabled,
+        interests: [],
+      },
     ]);
     expect(body[0]).not.toHaveProperty('moderationStatus');
-    expect(body[0]).not.toHaveProperty('messagingEnabled');
   });
 
   it('findOne returns the full view when the service grants it', async () => {
@@ -90,5 +96,17 @@ describe('ProfilesController', () => {
     const body = await controller.findOne(profile.id, user);
 
     expect(body).not.toHaveProperty('moderationStatus');
+    expect(body).toHaveProperty('messagingEnabled', profile.messagingEnabled);
+  });
+
+  it('findOne exposes a disabled messaging flag in the public view', async () => {
+    service.findByIdForViewer.mockResolvedValue({
+      profile: { ...profile, messagingEnabled: false },
+      isFullView: false,
+    });
+
+    const body = await controller.findOne(profile.id, user);
+
+    expect(body).toHaveProperty('messagingEnabled', false);
   });
 });
