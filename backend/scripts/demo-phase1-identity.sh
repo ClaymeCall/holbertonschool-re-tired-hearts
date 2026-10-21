@@ -37,7 +37,7 @@ call() {
   fi
   status=$(tail -n1 <<<"$response")
   echo "$method $path -> HTTP $status"
-  head -n -1 <<<"$response"
+  sed '$d' <<<"$response"
   echo
 }
 
