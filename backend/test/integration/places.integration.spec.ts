@@ -33,6 +33,13 @@ describe('Places API (integration)', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('refuses a suspended account, without calling the provider', async () => {
+    const suspended = await createActor(ctx, { accountStatus: 'suspended' });
+
+    await search('lyon', suspended).expect(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it.each([['missing', undefined], ['too short', 'l'], ['too long', 'a'.repeat(61)]])(
     'answers 400 when the text is %s, without calling the provider',
     async (_label, q) => {

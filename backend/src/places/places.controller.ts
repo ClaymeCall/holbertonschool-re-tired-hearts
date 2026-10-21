@@ -4,11 +4,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PlaceSearchResponseDto } from './dto/place-search-response.dto';
 import { SearchPlacesQuery } from './dto/search-places.query';
 import { PlacesService } from './places.service';
+import { ActiveAccountGuard } from '../auth/active-account.guard';
 
 @ApiTags('places')
 @ApiCookieAuth()
 @ApiUnauthorizedResponse({ description: 'Not authenticated or session expired' })
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ActiveAccountGuard)
 @Controller('places')
 export class PlacesController {
   constructor(private readonly places: PlacesService) {}
