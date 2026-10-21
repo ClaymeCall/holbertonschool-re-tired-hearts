@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ActiveAccountGuard } from '../auth/active-account.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
@@ -8,9 +9,12 @@ import { PublicProfileResponseDto, toPublicProfileResponse } from './dto/public-
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ProfilesService } from './profiles.service';
 
+// Genuinely member-only: unlike GET /v1/auth/me, nothing here needs to stay reachable
+// for a suspended/self-deleted account (docs/design-decisions.md §4), so both guards
+// apply to every route in this controller.
 @ApiTags('profiles')
 @Controller('profiles')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ActiveAccountGuard)
 @ApiCookieAuth()
 export class ProfilesController {
   constructor(private readonly profiles: ProfilesService) {}

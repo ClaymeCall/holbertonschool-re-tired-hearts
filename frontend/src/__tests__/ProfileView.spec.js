@@ -7,7 +7,7 @@ import * as profile from '../services/profile'
 
 vi.mock('../services/profile')
 
-const base = { display_name: 'Jeanne', bio: '', approximate_location: 'Lyon' }
+const base = { display_name: 'Jeanne', bio: '', approximate_location: 'Lyon', messaging_enabled: true }
 
 async function mountView() {
   const wrapper = mount(ProfileView, { attachTo: document.body })
@@ -50,6 +50,16 @@ describe('ProfileView', () => {
     profile.getMyProfile.mockRejectedValue(new Error('x'))
     const wrapper = await mountView()
     expect(wrapper.get('[role="alert"]').text()).toContain('Impossible de charger')
+  })
+
+  it('permet de refuser les messages des personnes rencontrées et explique la conséquence', async () => {
+    profile.updateMyProfile.mockResolvedValue({ ...base, messaging_enabled: false })
+    const wrapper = await mountView()
+    expect(wrapper.text()).toContain('personne ne peut vous écrire')
+    await wrapper.get('#messaging_enabled').setValue(false)
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(profile.updateMyProfile).toHaveBeenCalledWith({ ...base, messaging_enabled: false })
   })
 
   it('exige un nom affiché', async () => {

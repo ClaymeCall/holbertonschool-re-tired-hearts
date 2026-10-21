@@ -16,7 +16,7 @@ Resolutions for gaps the brief doesn't address explicitly:
 | Advanced logging/observability | **Declined** — stick to the brief, no addition | — |
 | API versioning | Approved, minimal — prefix routes with `/v1`, no further strategy | Phase 0 |
 | Soft/hard delete | Approved — decide policy for `User` (+ cascades) | Phase 0 (decision) / Phase 1 (migration) |
-| Password reset | Approved, minimal — no self-service flow, a documented direct DB `UPDATE` is sufficient | Phase 1 |
+| Password reset | Approved, minimal — no self-service flow, a documented direct DB `UPDATE` is sufficient | Phase 1 (`docs/api-conventions.md`) |
 | Pagination | Approved — event listing, API + Vue | Phase 2 |
 | OpenAPI | Approved — generate via NestJS's built-in `@nestjs/swagger` | Phase 0 |
 | Automated DB backup | **Declined** — reset-and-reseed (already required) is sufficient | — |
