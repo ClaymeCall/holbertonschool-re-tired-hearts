@@ -161,10 +161,13 @@ onMounted(load)
         <AlertMessage v-if="feedback.text" :variant="feedback.type === 'success' ? 'success' : 'error'">{{ feedback.text }}</AlertMessage>
       </div>
 
-      <div v-if="!event.isOrganizer" class="mt-6">
+      <div v-if="!event.isOrganizer" class="mt-6 flex flex-wrap items-center gap-4">
         <BaseButton v-if="registered" variant="secondary" :loading="working" @click="withdraw">Me désinscrire</BaseButton>
         <BaseButton v-else-if="registration.allowed" :loading="working" @click="register">Je m’inscris</BaseButton>
         <p v-else class="text-lg font-bold text-ink">{{ registration.reason }}</p>
+        <BaseButton variant="secondary" :to="{ name: 'person', params: { userId: event.organizer.id }, query: { organizerOf: event.id } }">
+          Contacter l’organisateur
+        </BaseButton>
       </div>
 
       <div v-else class="mt-8 border-t border-mist-deep pt-6">

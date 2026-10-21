@@ -31,6 +31,7 @@ async function mountView() {
       { path: '/events', name: 'events', component: { template: '<div />' } },
       { path: '/events/:id', name: 'event-detail', component: EventDetailView },
       { path: '/events/:id/edit', name: 'event-edit', component: { template: '<div />' } },
+      { path: '/people/:userId', name: 'person', component: { template: '<div />' } },
     ],
   })
   router.push('/events/5')
@@ -54,6 +55,20 @@ describe('EventDetailView', () => {
     expect(wrapper.get('h1').text()).toBe('Randonnée du dimanche')
     expect(wrapper.text()).toContain('Marie')
     expect(wrapper.text()).toContain('4 inscrit(s) sur 10')
+  })
+
+  it('propose d\'écrire à l\'organisateur, à droite du bouton d\'inscription', async () => {
+    await mountView()
+    const contact = button('Contacter l’organisateur')
+    expect(contact.attributes('href')).toBe('/people/2?organizerOf=5')
+    const register = button('Je m’inscris')
+    expect(register.element.parentElement).toBe(contact.element.parentElement)
+  })
+
+  it('ne propose pas de se contacter soi-même sur sa propre sortie', async () => {
+    service.getEvent.mockResolvedValue({ ...baseEvent, isOrganizer: true })
+    await mountView()
+    expect(button('Contacter l’organisateur')).toBeUndefined()
   })
 
   it('inscrit le membre et confirme', async () => {

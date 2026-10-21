@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
+import ChatPanel from '../components/ChatPanel.vue'
 import PersonAvatar from '../components/PersonAvatar.vue'
 import { getPerson, removeContact, saveContact } from '../services/people'
 
@@ -15,7 +16,9 @@ const working = ref(false)
 const feedback = ref({ type: '', text: '' })
 
 const back = computed(() =>
-  route.query.from === 'members'
+  route.query.organizerOf
+    ? { to: { name: 'event-detail', params: { id: route.query.organizerOf } }, label: '← Retour à la sortie' }
+    : route.query.from === 'members'
     ? { to: { name: 'members' }, label: '← Les membres' }
     : route.query.event
     ? { to: { name: 'event-people', params: { id: route.query.event } }, label: '← Les personnes présentes' }
@@ -87,6 +90,8 @@ onMounted(load)
           <BaseButton v-else variant="secondary" :loading="working" block @click="toggleContact">Retirer des contacts</BaseButton>
         </div>
       </article>
+
+      <div class="lg:col-span-7"><ChatPanel :person-id="person.id" :person-name="person.displayName" :accepts-messages="person.acceptsMessages !== false" :can-message="person.canMessage !== false" /></div>
     </div>
   </section>
 </template>
