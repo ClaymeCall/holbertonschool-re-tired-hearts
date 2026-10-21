@@ -20,7 +20,7 @@ this page fixes which profile fields are visible to whom, and under what conditi
 | `bio` | yes | yes | |
 | `approximate_location` | yes | yes | city/region only — never an exact address (`docs/design-decisions.md` §2) |
 | `interests` | yes | yes | via `profile_interests` |
-| `messaging_enabled` | yes | no | a privacy choice, not a social field: the viewer doesn't need to know it in advance — attempting to message a profile that disabled it fails with its own error (`docs/messaging-rules.md`), nothing is shown on the profile itself |
+| `messaging_enabled` | yes | yes | returned so the client can grey out message sending up front instead of only failing on submit. A UI hint only: it is not the whole eligibility rule (shared event, approved profiles, active accounts — `docs/messaging-rules.md`), and the API still refuses any message that breaks that rule |
 | `moderation_status` | yes | no | never exposed to other members; see "Pending/blocked profiles" below |
 | `email` | yes | **no** | never returned on any profile the viewer doesn't own — avoids exposing a contact channel that bypasses in-app messaging |
 | `account_status` | yes | no | account-level, not profile-level; relevant only to the owner and to moderators |
