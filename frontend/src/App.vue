@@ -1,5 +1,6 @@
 <script setup>
 import AppHeader from './components/AppHeader.vue'
+import TextZoomButton from './components/TextZoomButton.vue'
 </script>
 
 <template>
@@ -14,6 +15,7 @@ import AppHeader from './components/AppHeader.vue'
     <main id="main" class="flex-1">
       <router-view />
     </main>
+    <TextZoomButton />
     <footer class="bg-ink px-4 py-3 text-paper sm:px-6">
       <p class="mx-auto max-w-6xl text-base">
         <span class="font-extrabold">Re-Tired Hearts</span> – un service Happy Retired

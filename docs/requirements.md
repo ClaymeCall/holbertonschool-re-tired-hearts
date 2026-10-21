@@ -20,6 +20,7 @@ Resolutions for gaps the brief doesn't address explicitly:
 | Pagination | Approved — event listing, API + Vue | Phase 2 |
 | OpenAPI | Approved — generate via NestJS's built-in `@nestjs/swagger` | Phase 0 |
 | Automated DB backup | **Declined** — reset-and-reseed (already required) is sufficient | — |
+| Moderator contact-link bypass | Approved — a moderator (`is_admin`) can start a conversation with any member without a shared event or organizer link; the recipient's own conditions (active account, approved profile, `messaging_enabled`) still apply. Does not grant access to read other members' conversations. | Phase 3 (`docs/messaging-rules.md`) |
 
 ## Cross-cutting principles
 
@@ -135,7 +136,7 @@ Apply across every phase. Not standalone issues, but acceptance bars for issues 
 
 **Priority: P1.** Depends on Phase 2 (event registrations define contact eligibility) and Phase 1 (approved profile / privacy settings / account status gating).
 
-1. Business rule: a conversation may start between two members only if **both have an active registration for the same event**, OR a member has an active registration for an event **organized by the recipient**. Withdrawn registrations do not grant new-conversation permission. Both participants need approved profile, active account, and private-messaging enabled in privacy settings. Once created, a conversation survives event end / participant withdrawal as long as both remain authorized. If either participant disables messaging or loses required status, **new** messages are refused, but existing history access still follows account/privacy rules.
+1. Business rule: a conversation may start between two members only if **both have an active registration for the same event**, OR a member has an active registration for an event **organized by the recipient**, OR the sender is a moderator (**Team decision**, see table above). Withdrawn registrations do not grant new-conversation permission. Both participants need approved profile, active account, and private-messaging enabled in privacy settings. Once created, a conversation survives event end / participant withdrawal as long as both remain authorized. If either participant disables messaging or loses required status, **new** messages are refused, but existing history access still follows account/privacy rules.
 2. Migrations: `conversations`, `messages` with ownership relations. Exactly two distinct participants per conversation; prevent duplicate conversations between the same pair regardless of initiator.
 3. Implement conversation creation, listing, message creation, message-history routes, enforcing the contact rules above.
 4. Restrict each conversation to its two participants on every read/write. Sender identity always derived from the authenticated session/token, never a client-supplied id. Pending/blocked/suspended accounts cannot initiate or send. Unrelated users cannot access existing conversations.

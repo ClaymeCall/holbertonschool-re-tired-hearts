@@ -13,7 +13,12 @@ Phase 0 deliverable covering issue **#26** (the same business rule is restated i
 
 ## Starting a conversation
 
-A member can start a conversation with a recipient only if **all** of these hold:
+There is no separate "create conversation" action: `POST /v1/conversations/with/:personId/messages` both starts
+and continues a conversation, and the client cannot tell the two apart from the outside. The contact link below
+(point 3) is required only for the **first** message between two users; once a conversation exists, sending
+another message follows "Sending a message in an existing conversation" instead.
+
+A member can send that first message to a recipient only if **all** of these hold:
 
 1. the sender and the recipient are two different users;
 2. both are authorized to communicate (definition above);
@@ -21,7 +26,6 @@ A member can start a conversation with a recipient only if **all** of these hold
    - **shared event**: both have an active registration for the same event;
    - **organizer**: one of them has an active registration for an event organized by the other. This works in **both directions**: a registered member can write to the organizer, and the organizer can write to a registered member;
    - **moderator**: the sender is a moderator (`is_admin`). A moderator can start a conversation with any member without a contact link. The recipient's own conditions (active account, approved profile, `messaging_enabled`) still apply.
-4. no conversation exists yet between the two users, whoever started it.
 
 Notes:
 - The state of the event is not checked: a `cancelled` or `completed` event does not prevent two people who were registered from talking, because what counts is the `registered` row. Since a `cancelled` event refuses new registrations, only people registered **before** can use it as a contact link.
@@ -69,7 +73,6 @@ unavailable member instead of exposing account details.
 | Recipient exists but does not accept private messages | 403 Forbidden, explicit message |
 | No contact link (no shared event, no organizer link) and the caller is not a moderator | 403 Forbidden |
 | Recipient unavailable (profile not approved, account not active) | 404 Not Found |
-| Conversation already exists between the two users | 409 Conflict (the client opens the existing conversation from `GET /v1/conversations`) |
 | Sender and recipient are the same user | 400 Bad Request |
 | Empty message, longer than 1,000 characters, or unknown field in the body | 400 Bad Request |
 | Conversation not found, or the caller is not a participant | 404 Not Found |

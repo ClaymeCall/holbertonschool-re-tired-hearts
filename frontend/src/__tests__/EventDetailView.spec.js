@@ -90,6 +90,30 @@ describe('EventDetailView', () => {
     expect(wrapper.text()).toContain('Votre place est libérée')
   })
 
+  it.each(['cancelled', 'completed'])('masque « Me désinscrire » sur une sortie %s', async (status) => {
+    service.getEvent.mockResolvedValue({ ...baseEvent, status, myRegistration: 'registered' })
+    await mountView()
+    expect(button('Me désinscrire')).toBeUndefined()
+    expect(wrapper.text()).toMatch(/annulée|terminée/)
+  })
+
+  it('organisateur : « Marquer comme terminée » seulement une fois la date passée', async () => {
+    service.getEvent.mockResolvedValue({ ...baseEvent, isOrganizer: true })
+    await mountView()
+    expect(button('Marquer comme terminée')).toBeUndefined()
+    wrapper.unmount()
+    service.getEvent.mockResolvedValue({ ...baseEvent, isOrganizer: true, startsAt: new Date(Date.now() - 86400000).toISOString() })
+    await mountView()
+    expect(button('Marquer comme terminée')).toBeTruthy()
+  })
+
+  it('organisateur : pas de publication d\'un brouillon dont la date est passée', async () => {
+    service.getEvent.mockResolvedValue({ ...baseEvent, isOrganizer: true, status: 'draft', startsAt: new Date(Date.now() - 86400000).toISOString() })
+    await mountView()
+    expect(button('Publier la sortie')).toBeUndefined()
+    expect(wrapper.text()).toContain('modifiez la date')
+  })
+
   it('refuse l\'inscription à une sortie complète', async () => {
     service.getEvent.mockResolvedValue({ ...baseEvent, registeredCount: 10 })
     await mountView()

@@ -38,15 +38,48 @@ feat(frontend): add router, home view and api client with tests
 build(frontend): add vue-router, pinia and vitest tooling
 ```
 
-## Recreating a blank database
+## Database migrations
 
-No migration/ORM tooling exists yet, so the database is reset by dropping and recreating the Postgres volume:
+The schema is managed through versioned TypeORM migrations (see `docs/backend-structure.md#commands`) — there is no `synchronize: true`, so an empty Postgres volume has no tables until migrations run.
+
+Run migrations against the `backend` container after any first `docker compose up --build`, and again any time you reset the volume:
 
 ```bash
-docker compose down -v   # stops services and removes db_data
+docker compose exec backend npm run migration:run
+```
+
+Skipping this step is the most common "it worked yesterday" surprise in this project: the stack starts fine, but every request that touches the database (e.g. `POST /v1/auth/register`) fails with `relation "users" does not exist` until migrations are run.
+
+
+```bash
+docker compose down -v                        # stops services and removes db_data
 docker compose up --build
+docker compose exec backend npm run migration:run
+docker compose exec backend npm run seed
 ```
 
 Postgres reinitializes using `POSTGRES_DB`/`POSTGRES_USER`/`POSTGRES_PASSWORD` from `.env` (see `docker-compose.yml`).
+`npm run seed` (`backend/src/database/seed.ts`) is idempotent — safe to run again on an already-seeded database,
+it just won't duplicate rows — and populates every entity in `docs/data-model.md` with reproducible demo data:
+an initial moderator account (issue #41), a few demo members in different profile/account states (approved,
+pending, suspended), events across all four lifecycle states, registrations, a demo conversation, and the
+moderation actions behind them. The script prints each demo account's login at the end; see
+`backend/src/database/seeds/users.seed.ts` for the full list and to override the moderator's credentials via
+`SEED_MODERATOR_EMAIL`/`SEED_MODERATOR_PASSWORD`.
 
-This procedure is temporary — once versioned migrations and seed data are added, this section should be updated to describe the migrate/reset/seed commands instead.
+## Running the tests
+
+Unit tests (no database needed):
+
+```bash
+docker compose exec backend npm test
+```
+
+Integration tests (real HTTP requests against a real PostgreSQL database):
+
+```bash
+docker compose exec backend npm run test:integration
+```
+
+They use a separate database named `<DB_NAME>_test`, created automatically, and refuse to run on any other database, so development data is never touched.
+
