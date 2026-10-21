@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { AccountStatus, User } from '../users/entities/user.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import {
@@ -201,9 +201,12 @@ export class EventsService {
 
   // Cancelling by a moderator, through the audited moderation route (#65). Same transition as
   // the organizer-only cancel() above, minus the ownership check — a moderator may cancel any
-  // event, not just their own (docs/role-assignment-rules.md).
-  async cancelByModerator(moderator: User, id: number): Promise<EventResponseDto> {
-    const event = await this.events.findOneBy({ id });
+  // event, not just their own (docs/role-assignment-rules.md). Runs in the caller's transaction
+  // when given one, so the moderation audit row commits together with the status change; the
+  // caller reads the updated event back (getById) once that transaction has committed.
+  async cancelByModerator(id: number, manager?: EntityManager): Promise<void> {
+    const repo = manager?.getRepository(Event) ?? this.events;
+    const event = await repo.findOneBy({ id });
     if (!event) {
       throw new NotFoundException('Event not found.');
     }
@@ -212,8 +215,8 @@ export class EventsService {
       [EventStatus.PUBLISHED],
       EventStatus.CANCELLED,
       'Only a published event can be cancelled.',
+      repo,
     );
-    return this.getById(moderator, id);
   }
 
   async complete(user: User, id: number): Promise<EventResponseDto> {
@@ -338,9 +341,15 @@ export class EventsService {
     throw new ForbiddenException('Only the organizer can do this.');
   }
 
-  private async transition(event: Event, from: EventStatus[], to: EventStatus, message: string): Promise<void> {
+  private async transition(
+    event: Event,
+    from: EventStatus[],
+    to: EventStatus,
+    message: string,
+    repo: Repository<Event> = this.events,
+  ): Promise<void> {
     // The status is part of the WHERE clause: if another request changed it meanwhile, nothing is updated.
-    const result = await this.events.update({ id: event.id, status: In(from) }, { status: to });
+    const result = await repo.update({ id: event.id, status: In(from) }, { status: to });
     if (!result.affected) {
       throw new ConflictException(message);
     }

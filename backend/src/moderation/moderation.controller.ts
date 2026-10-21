@@ -28,7 +28,9 @@ import { ModerationService } from './moderation.service';
 @ApiTags('moderation')
 @ApiCookieAuth()
 @ApiUnauthorizedResponse({ description: 'Not authenticated or session expired' })
-@ApiForbiddenResponse({ description: 'Not a moderator, account not active, or acting on your own account/profile' })
+@ApiForbiddenResponse({
+  description: "Not a moderator, account not active, or acting on your own or another moderator's account/profile",
+})
 @UseGuards(JwtAuthGuard, ActiveAccountGuard, RolesGuard)
 @Roles(Role.ADMIN)
 @Controller('moderation')

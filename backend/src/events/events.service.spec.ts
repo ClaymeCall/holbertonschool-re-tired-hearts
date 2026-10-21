@@ -191,9 +191,8 @@ describe('EventsService lifecycle', () => {
   it('lets a moderator cancel any published event, regardless of organizer', async () => {
     const { service, events } = build();
     events.findOneBy.mockResolvedValue(event({ status: EventStatus.PUBLISHED, organizerId: 2 }));
-    const moderator = user({ id: 99, isAdmin: true });
 
-    await service.cancelByModerator(moderator, 10);
+    await service.cancelByModerator(10);
 
     expect(events.update).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }), { status: EventStatus.CANCELLED });
   });
@@ -203,18 +202,14 @@ describe('EventsService lifecycle', () => {
     events.findOneBy.mockResolvedValue(event({ status: EventStatus.DRAFT, organizerId: 2 }));
     events.update.mockResolvedValue({ affected: 0 });
 
-    await expect(service.cancelByModerator(user({ id: 99, isAdmin: true }), 10)).rejects.toBeInstanceOf(
-      ConflictException,
-    );
+    await expect(service.cancelByModerator(10)).rejects.toBeInstanceOf(ConflictException);
   });
 
   it('answers 404 when a moderator cancels an unknown event', async () => {
     const { service, events } = build();
     events.findOneBy.mockResolvedValue(null);
 
-    await expect(service.cancelByModerator(user({ id: 99, isAdmin: true }), 404)).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(service.cancelByModerator(404)).rejects.toBeInstanceOf(NotFoundException);
   });
 });
 

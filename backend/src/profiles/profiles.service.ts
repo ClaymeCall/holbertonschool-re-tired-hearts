@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { Interest } from '../interests/entities/interest.entity';
 import { InterestsService } from '../interests/interests.service';
 import { AccountStatus, User } from '../users/entities/user.entity';
@@ -115,44 +115,55 @@ export class ProfilesService {
 
   // `pending -> approved` only: a blocked profile is restored via unblock(), not approve()
   // (docs/design-decisions.md §4 "Allowed transitions").
-  approve(id: number): Promise<Profile> {
+  approve(id: number, manager?: EntityManager): Promise<Profile> {
     return this.transitionModerationStatus(
       id,
       [ProfileModerationStatus.PENDING],
       ProfileModerationStatus.APPROVED,
+      manager,
     );
   }
 
   // `pending -> blocked` or `approved -> blocked`: both are recorded as the same `block_profile`
   // action (docs/design-decisions.md §4).
-  block(id: number): Promise<Profile> {
+  block(id: number, manager?: EntityManager): Promise<Profile> {
     return this.transitionModerationStatus(
       id,
       [ProfileModerationStatus.PENDING, ProfileModerationStatus.APPROVED],
       ProfileModerationStatus.BLOCKED,
+      manager,
     );
   }
 
   // `blocked -> approved`: unblocking always restores `approved`, never `pending`.
-  unblock(id: number): Promise<Profile> {
+  unblock(id: number, manager?: EntityManager): Promise<Profile> {
     return this.transitionModerationStatus(
       id,
       [ProfileModerationStatus.BLOCKED],
       ProfileModerationStatus.APPROVED,
+      manager,
     );
   }
 
+  // Runs in the caller's transaction when given one (ModerationService writes its audit row in
+  // the same transaction). The status is part of the WHERE clause, like EventsService.transition():
+  // if another moderator changed it meanwhile, nothing is updated and the request gets 409.
   private async transitionModerationStatus(
     id: number,
     from: ProfileModerationStatus[],
     to: ProfileModerationStatus,
+    manager?: EntityManager,
   ): Promise<Profile> {
-    const profile = await this.findByIdForModeration(id);
-    if (!from.includes(profile.moderationStatus)) {
+    const repo = manager?.getRepository(Profile) ?? this.profiles;
+    const result = await repo.update({ id, moderationStatus: In(from) }, { moderationStatus: to });
+    const profile = await repo.findOne({ where: { id } });
+    if (!profile) {
+      throw new NotFoundException('Profile not found.');
+    }
+    if (!result.affected) {
       throw new ConflictException(`Cannot move a '${profile.moderationStatus}' profile to '${to}'.`);
     }
-    profile.moderationStatus = to;
-    return this.profiles.save(profile);
+    return profile;
   }
 
   private findByUserId(userId: number): Promise<Profile | null> {

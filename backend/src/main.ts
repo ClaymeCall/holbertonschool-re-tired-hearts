@@ -8,8 +8,8 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Secure headers (#67): HSTS, no-sniff, frame-deny, etc. `contentSecurityPolicy` is left at
-  // helmet's default (on) — this is a JSON API with no HTML views of its own to break.
+  // Secure headers (#67): HSTS, no-sniff, frame-deny, etc. The default CSP is kept on;
+  // Swagger UI (/v1/docs) was checked to still render with it.
   app.use(helmet());
 
   // Every route is served under /v1 (no further versioning strategy for the MVP).
