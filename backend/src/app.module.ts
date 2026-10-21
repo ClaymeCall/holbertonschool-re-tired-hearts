@@ -7,10 +7,19 @@ import { databaseConfig } from './config/database.config';
 import { EventsModule } from './events/events.module';
 import { InterestsModule } from './interests/interests.module';
 import { MessagingModule } from './messaging/messaging.module';
+import { ModerationModule } from './moderation/moderation.module';
 import { ProfilesModule } from './profiles/profiles.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(databaseConfig), AuthModule, ProfilesModule, InterestsModule, EventsModule, MessagingModule],
+  imports: [
+    TypeOrmModule.forRoot(databaseConfig),
+    AuthModule,
+    ProfilesModule,
+    InterestsModule,
+    EventsModule,
+    MessagingModule,
+    ModerationModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

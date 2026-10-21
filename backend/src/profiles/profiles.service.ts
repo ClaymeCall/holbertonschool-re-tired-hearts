@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { Interest } from '../interests/entities/interest.entity';
 import { InterestsService } from '../interests/interests.service';
 import { AccountStatus, User } from '../users/entities/user.entity';
@@ -91,6 +91,79 @@ export class ProfilesService {
       }
     }
     return { profile, isFullView: isOwner || isModerator };
+  }
+
+  // ---------- moderation (Phase 4, #64/#65/#66) ----------
+
+  // A moderator can see a profile in any status by its id — unlike findByIdForViewer, there is
+  // no visibility filtering here, since the caller is already known to be a moderator.
+  async findByIdForModeration(id: number): Promise<Profile> {
+    const profile = await this.profiles.findOne({ where: { id } });
+    if (!profile) {
+      throw new NotFoundException('Profile not found.');
+    }
+    return profile;
+  }
+
+  listByStatus(status: ProfileModerationStatus): Promise<Profile[]> {
+    return this.profiles.find({
+      where: { moderationStatus: status },
+      relations: ['interests'],
+      order: { id: 'ASC' },
+    });
+  }
+
+  // `pending -> approved` only: a blocked profile is restored via unblock(), not approve()
+  // (docs/design-decisions.md §4 "Allowed transitions").
+  approve(id: number, manager?: EntityManager): Promise<Profile> {
+    return this.transitionModerationStatus(
+      id,
+      [ProfileModerationStatus.PENDING],
+      ProfileModerationStatus.APPROVED,
+      manager,
+    );
+  }
+
+  // `pending -> blocked` or `approved -> blocked`: both are recorded as the same `block_profile`
+  // action (docs/design-decisions.md §4).
+  block(id: number, manager?: EntityManager): Promise<Profile> {
+    return this.transitionModerationStatus(
+      id,
+      [ProfileModerationStatus.PENDING, ProfileModerationStatus.APPROVED],
+      ProfileModerationStatus.BLOCKED,
+      manager,
+    );
+  }
+
+  // `blocked -> approved`: unblocking always restores `approved`, never `pending`.
+  unblock(id: number, manager?: EntityManager): Promise<Profile> {
+    return this.transitionModerationStatus(
+      id,
+      [ProfileModerationStatus.BLOCKED],
+      ProfileModerationStatus.APPROVED,
+      manager,
+    );
+  }
+
+  // Runs in the caller's transaction when given one (ModerationService writes its audit row in
+  // the same transaction). The status is part of the WHERE clause, like EventsService.transition():
+  // if another moderator changed it meanwhile, nothing is updated and the request gets 409.
+  private async transitionModerationStatus(
+    id: number,
+    from: ProfileModerationStatus[],
+    to: ProfileModerationStatus,
+    manager?: EntityManager,
+  ): Promise<Profile> {
+    const repo = manager?.getRepository(Profile) ?? this.profiles;
+    const result = await repo.update({ id, moderationStatus: In(from) }, { moderationStatus: to });
+    const profile = await repo.findOne({ where: { id } });
+    if (!profile) {
+      throw new NotFoundException('Profile not found.');
+    }
+    if (!result.affected) {
+      throw new ConflictException(`Cannot move a '${profile.moderationStatus}' profile to '${to}'.`);
+    }
+    return profile;
   }
 
   private findByUserId(userId: number): Promise<Profile | null> {
