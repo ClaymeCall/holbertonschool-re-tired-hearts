@@ -8,6 +8,7 @@ import { EventsModule } from './events/events.module';
 import { InterestsModule } from './interests/interests.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { ModerationModule } from './moderation/moderation.module';
+import { PlacesModule } from './places/places.module';
 import { ProfilesModule } from './profiles/profiles.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { ProfilesModule } from './profiles/profiles.module';
     EventsModule,
     MessagingModule,
     ModerationModule,
+    PlacesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
