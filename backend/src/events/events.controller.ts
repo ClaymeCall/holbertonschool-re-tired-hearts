@@ -24,6 +24,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { ActiveAccountGuard } from '../auth/active-account.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
@@ -34,10 +35,11 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { EventsService } from './events.service';
 
 // The caller is always `@CurrentUser()` (taken from the session), never an id sent by the client.
+// Genuinely member-only, like ProfilesController: every route here needs ActiveAccountGuard (#66).
 @ApiTags('events')
 @ApiCookieAuth()
 @ApiUnauthorizedResponse({ description: 'Not authenticated or session expired' })
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ActiveAccountGuard)
 @Controller('events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}

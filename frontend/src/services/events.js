@@ -1,4 +1,5 @@
 import { ApiError } from './api'
+import { MEMBER_POOL, findPerson } from './directory'
 
 // Simulation : les routes /v1/events ne sont pas encore implémentées (phase 2).
 // Le contrat suit docs/api-conventions.md et les précisions de N-Haitu31 (backend) :
@@ -189,3 +190,38 @@ export async function listMyEvents() {
     organized: events.filter((event) => event.isOrganizer).map(copy),
   }
 }
+
+const isHeld = (event) => event.status === 'completed' || (event.status === 'published' && new Date(event.startsAt) < new Date())
+
+// Personnes présentes à une sortie : réservé à l'organisateur et aux inscrits.
+function participantsOf(event) {
+  const others = Math.min(Math.max(event.registeredCount - (event.myRegistration === 'registered' ? 1 : 0), 0), MEMBER_POOL.length)
+  const members = Array.from({ length: others }, (_, i) => MEMBER_POOL[(event.id + i) % MEMBER_POOL.length])
+  const people = members.map((person) => ({ id: person.id, displayName: person.displayName, isOrganizer: false }))
+  return event.isOrganizer ? people : [{ id: event.organizer.id, displayName: event.organizer.displayName, isOrganizer: true }, ...people]
+}
+
+export async function listParticipants(id) {
+  await delay()
+  const event = find(id)
+  if (!event) throw notFound()
+  if (!event.isOrganizer && event.myRegistration !== 'registered') throw new ApiError(403, 'Interdit.')
+  return participantsOf(event)
+}
+
+// Identifiants des personnes rencontrées : participants et organisateurs des sorties déjà faites
+// auxquelles j'ai participé ou que j'organisais. (Simulation de la règle de visibilité des profils.)
+export function listMetPersonIds() {
+  const ids = new Set()
+  events
+    .filter((event) => isHeld(event) && (event.isOrganizer || event.myRegistration === 'registered'))
+    .forEach((event) => participantsOf(event).forEach((person) => ids.add(person.id)))
+  return ids
+}
+
+// Les organisateurs de sorties publiées restent joignables, comme les participants.
+export function listOrganizerIds() {
+  return new Set(events.filter((event) => event.status === 'published' && !event.isOrganizer).map((event) => event.organizer.id))
+}
+
+export const personName = (id) => findPerson(id)?.displayName ?? 'Un membre'

@@ -2,10 +2,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Secure headers (#67): HSTS, no-sniff, frame-deny, etc. The default CSP is kept on;
+  // Swagger UI (/v1/docs) was checked to still render with it.
+  app.use(helmet());
 
   // Every route is served under /v1 (no further versioning strategy for the MVP).
   app.setGlobalPrefix('v1');

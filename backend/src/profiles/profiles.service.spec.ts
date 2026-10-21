@@ -1,6 +1,7 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { EntityManager, In } from 'typeorm';
 import { AccountStatus, User } from '../users/entities/user.entity';
 import { InterestsService } from '../interests/interests.service';
 import { Profile, ProfileModerationStatus } from './entities/profile.entity';
@@ -11,6 +12,7 @@ type RepoMock = {
   save: jest.Mock;
   find: jest.Mock;
   findOne: jest.Mock;
+  update: jest.Mock;
   createQueryBuilder: jest.Mock;
 };
 type QueryBuilderMock = {
@@ -71,6 +73,7 @@ describe('ProfilesService', () => {
       save: jest.fn(async (input) => ({ id: 10, ...input })),
       find: jest.fn(),
       findOne: jest.fn(),
+      update: jest.fn().mockResolvedValue({ affected: 1 }),
       createQueryBuilder: jest.fn(() => qb),
     };
     usersRepo = { findOneBy: jest.fn().mockResolvedValue(owner) };
@@ -228,6 +231,92 @@ describe('ProfilesService', () => {
       repo.findOne.mockResolvedValue(null);
 
       await expect(service.findByIdForViewer(404, otherMember)).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('moderation transitions', () => {
+    it('approves a pending profile with a status-conditional update', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.APPROVED });
+
+      const profile = await service.approve(existingProfile.id);
+
+      expect(repo.update).toHaveBeenCalledWith(
+        { id: existingProfile.id, moderationStatus: In([ProfileModerationStatus.PENDING]) },
+        { moderationStatus: ProfileModerationStatus.APPROVED },
+      );
+      expect(profile.moderationStatus).toBe(ProfileModerationStatus.APPROVED);
+    });
+
+    it('refuses to approve a profile that is no longer pending', async () => {
+      repo.update.mockResolvedValue({ affected: 0 });
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.APPROVED });
+
+      await expect(service.approve(existingProfile.id)).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('blocks a pending or approved profile', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.BLOCKED });
+
+      const profile = await service.block(existingProfile.id);
+
+      expect(repo.update).toHaveBeenCalledWith(
+        {
+          id: existingProfile.id,
+          moderationStatus: In([ProfileModerationStatus.PENDING, ProfileModerationStatus.APPROVED]),
+        },
+        { moderationStatus: ProfileModerationStatus.BLOCKED },
+      );
+      expect(profile.moderationStatus).toBe(ProfileModerationStatus.BLOCKED);
+    });
+
+    it('unblocks a blocked profile back to approved', async () => {
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.APPROVED });
+
+      const profile = await service.unblock(existingProfile.id);
+
+      expect(repo.update).toHaveBeenCalledWith(
+        { id: existingProfile.id, moderationStatus: In([ProfileModerationStatus.BLOCKED]) },
+        { moderationStatus: ProfileModerationStatus.APPROVED },
+      );
+      expect(profile.moderationStatus).toBe(ProfileModerationStatus.APPROVED);
+    });
+
+    it('refuses to unblock a profile that is not blocked', async () => {
+      repo.update.mockResolvedValue({ affected: 0 });
+      repo.findOne.mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.PENDING });
+
+      await expect(service.unblock(existingProfile.id)).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('throws 404 for an unknown profile id', async () => {
+      repo.update.mockResolvedValue({ affected: 0 });
+      repo.findOne.mockResolvedValue(null);
+
+      await expect(service.approve(404)).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('uses the caller-provided transaction manager when given one', async () => {
+      const txRepo = {
+        update: jest.fn().mockResolvedValue({ affected: 1 }),
+        findOne: jest.fn().mockResolvedValue({ ...existingProfile, moderationStatus: ProfileModerationStatus.APPROVED }),
+      };
+      const manager = { getRepository: jest.fn(() => txRepo) } as unknown as EntityManager;
+
+      await service.approve(existingProfile.id, manager);
+
+      expect(txRepo.update).toHaveBeenCalled();
+      expect(repo.update).not.toHaveBeenCalled();
+    });
+
+    it('lists profiles filtered by moderation status', async () => {
+      repo.find.mockResolvedValue([existingProfile]);
+
+      const result = await service.listByStatus(ProfileModerationStatus.PENDING);
+
+      expect(repo.find).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { moderationStatus: ProfileModerationStatus.PENDING } }),
+      );
+      expect(result).toEqual([existingProfile]);
     });
   });
 });

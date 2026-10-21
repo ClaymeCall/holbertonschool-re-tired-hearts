@@ -64,6 +64,7 @@ Two rules the brief calls out explicitly and that the table above encodes:
 |---|---|
 | Registration or profile-edit body includes `is_admin` (or any other role/status field) | 400 Bad Request |
 | Member without `is_admin` calls a `/v1/moderation/*` route | 403 Forbidden |
+| Moderator approves/blocks/unblocks the profile of, or suspends/reactivates, their own account or another moderator's (`is_admin`) account | 403 Forbidden — a moderator is only restricted by a direct database operation, never through the API, so one moderator cannot lock the others out |
 | Organizer calls `POST /v1/events/:id/registrations` on their own event | 403 Forbidden |
 | Member without an `approved` profile calls `POST /v1/events` | 403 Forbidden |
 | Moderator calls `POST /v1/events/:id/cancel` on an event they don't organize | 403 Forbidden — must use `POST /v1/moderation/events/:id/cancel` instead |

@@ -2,12 +2,13 @@
 import { onMounted, reactive, ref } from 'vue'
 import FormField from '../components/FormField.vue'
 import BaseButton from '../components/BaseButton.vue'
+import CheckboxField from '../components/CheckboxField.vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import PageCard from '../components/PageCard.vue'
 import { photos } from '../assets/photos'
 import { getMyProfile, updateMyProfile } from '../services/profile'
 
-const form = reactive({ display_name: '', bio: '', approximate_location: '' })
+const form = reactive({ display_name: '', bio: '', approximate_location: '', messaging_enabled: true })
 const errors = reactive({ display_name: '' })
 const loadError = ref('')
 const formError = ref('')
@@ -50,6 +51,7 @@ async function submit() {
         display_name: form.display_name.trim(),
         bio: form.bio.trim(),
         approximate_location: form.approximate_location.trim(),
+        messaging_enabled: form.messaging_enabled,
       }),
     )
     isNew.value = false
@@ -89,6 +91,11 @@ onMounted(load)
         hint="N’indiquez jamais votre adresse exacte."
         autocomplete="address-level2"
       />
+
+      <div>
+        <CheckboxField id="messaging_enabled" v-model="form.messaging_enabled" label="Autoriser les personnes rencontrées à m’écrire" />
+        <p class="text-base text-muted">Si vous décochez cette case, personne ne peut vous écrire, et vous ne pouvez plus écrire non plus. Vos anciens messages restent visibles.</p>
+      </div>
 
       <BaseButton type="submit" block :loading="saving">{{ saving ? 'Enregistrement…' : 'Enregistrer' }}</BaseButton>
     </form>
