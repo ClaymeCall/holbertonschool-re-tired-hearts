@@ -34,6 +34,45 @@ Covers issue **#37**. A JWT (`sub` = user id, HS256) is the session token. It tr
   own restriction. Status-based route protection (rejecting suspended/blocked accounts on
   everything *except* `/auth/me`) is issues **#42**/**#66**.
 
+## Password reset
+
+Covers issue **#39**. Minimal, non-self-service for the MVP (**Team decision**, see
+`docs/requirements.md`): there is no `/v1/auth/reset-password` route, no reset token, and no
+reset email — it is deliberately absent from "Planned routes" above. Registration is the only
+way a password is ever set through the API.
+
+A member who forgets their password asks a moderator/admin to reset it. After verifying the
+member's identity out-of-band (e.g. the email already on file, not one supplied by the
+requester), the moderator runs a direct SQL `UPDATE` against `users.password_hash`:
+
+1. Hash the new password with the same algorithm and cost the app uses (`bcrypt`,
+   `BCRYPT_ROUNDS = 12` — `backend/src/auth/auth.service.ts`), so it verifies the same way
+   `POST /v1/auth/login` checks it. It must still satisfy the registration rule of 8–72
+   characters (`RegisterDto`; bcrypt ignores bytes past 72):
+   ```bash
+    docker compose exec backend node -e "console.log(require('bcrypt').hashSync('<new-password>', 12))"
+   ```
+   The password is typed on the command line, so it would otherwise stay in the shell history
+   (and be visible in `ps` while it runs): note the leading space above, which keeps the command
+   out of the history when `HISTCONTROL=ignorespace` (or `ignoreboth`) is set.
+2. Update the row by email, never by a guessed/inferred id. Emails are stored as typed at
+   registration but login compares them case-insensitively (`lower(email)`), so the `UPDATE` must
+   too. Run it from an interactive `psql` session: a bcrypt hash contains `$` characters, which
+   the shell would expand (and silently corrupt) inside a double-quoted `psql -c "…"`:
+   ```sql
+   UPDATE users SET password_hash = '<hash-from-step-1>' WHERE lower(email) = lower('<member-email>');
+   ```
+   `psql` must print exactly `UPDATE 1`. `UPDATE 0` means no row matched (wrong email) and
+   nothing was changed.
+3. Share the new password with the member out-of-band, never through a channel that would keep
+   it in plaintext afterwards (e.g. not a ticket or issue comment). There is no in-app "change
+   password" flow in the MVP, so a member who wants to change it again goes through this same
+   procedure.
+
+This is a database operation outside the application, not a `ModerationAction`: it never appears
+in the `moderation_actions` audit trail, which keeps that log entirely free of password-adjacent
+material (`docs/design-decisions.md`) rather than relying on the moderator to redact it per row.
+
 ## Rate limiting
 
 Covers issue **#38**. `POST /v1/auth/register` and `POST /v1/auth/login` are rate-limited with
