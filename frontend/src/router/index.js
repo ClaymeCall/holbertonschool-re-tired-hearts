@@ -7,6 +7,10 @@ import EventsView from '../views/EventsView.vue'
 import EventDetailView from '../views/EventDetailView.vue'
 import EventFormView from '../views/EventFormView.vue'
 import MyEventsView from '../views/MyEventsView.vue'
+import EventPeopleView from '../views/EventPeopleView.vue'
+import PersonView from '../views/PersonView.vue'
+import ContactsView from '../views/ContactsView.vue'
+import MembersView from '../views/MembersView.vue'
 import { useSessionStore } from '../stores/session'
 import { applyPageMeta } from './meta'
 
@@ -34,6 +38,10 @@ routes.push(
   { path: '/events/new', name: 'event-new', component: EventFormView, meta: privateMeta('Proposer une sortie') },
   { path: '/events/:id', name: 'event-detail', component: EventDetailView, meta: privateMeta('Détail de la sortie') },
   { path: '/events/:id/edit', name: 'event-edit', component: EventFormView, meta: privateMeta('Modifier la sortie') },
+  { path: '/events/:id/people', name: 'event-people', component: EventPeopleView, meta: privateMeta('Les personnes présentes') },
+  { path: '/people/:userId', name: 'person', component: PersonView, meta: privateMeta('Profil') },
+  { path: '/members', name: 'members', component: MembersView, meta: privateMeta('Les membres') },
+  { path: '/contacts', name: 'contacts', component: ContactsView, meta: privateMeta('Mes contacts') },
   { path: '/my-events', name: 'my-events', component: MyEventsView, meta: privateMeta('Mes sorties') },
 )
 

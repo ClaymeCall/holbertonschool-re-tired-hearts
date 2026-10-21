@@ -169,7 +169,11 @@ onMounted(load)
       <!-- Sorties auxquelles j'ai participé -->
       <div v-else id="panel-past" role="tabpanel" aria-labelledby="tab-past" class="mt-6 space-y-4">
         <p v-if="past.length === 0" class="rounded-lg bg-mist p-6 text-lg text-ink">Vous n’avez encore participé à aucune sortie.</p>
-        <EventRow v-for="event in past" :key="event.id" :event="event" :note="event.isOrganizer ? 'Vous organisiez cette sortie' : ''" />
+        <EventRow v-for="event in past" :key="event.id" :event="event" :note="event.isOrganizer ? 'Vous organisiez cette sortie' : ''">
+          <template #actions>
+            <BaseButton :to="{ name: 'event-people', params: { id: event.id } }">Voir les personnes présentes</BaseButton>
+          </template>
+        </EventRow>
       </div>
     </template>
 
