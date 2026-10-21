@@ -50,12 +50,20 @@ requester), the moderator runs a direct SQL `UPDATE` against `users.password_has
    `POST /v1/auth/login` checks it. It must still satisfy the registration rule of 8–72
    characters (`RegisterDto`; bcrypt ignores bytes past 72):
    ```bash
-   docker compose exec backend node -e "console.log(require('bcrypt').hashSync('<new-password>', 12))"
+    docker compose exec backend node -e "console.log(require('bcrypt').hashSync('<new-password>', 12))"
    ```
-2. Update the row by email, never by a guessed/inferred id:
+   The password is typed on the command line, so it would otherwise stay in the shell history
+   (and be visible in `ps` while it runs): note the leading space above, which keeps the command
+   out of the history when `HISTCONTROL=ignorespace` (or `ignoreboth`) is set.
+2. Update the row by email, never by a guessed/inferred id. Emails are stored as typed at
+   registration but login compares them case-insensitively (`lower(email)`), so the `UPDATE` must
+   too. Run it from an interactive `psql` session: a bcrypt hash contains `$` characters, which
+   the shell would expand (and silently corrupt) inside a double-quoted `psql -c "…"`:
    ```sql
-   UPDATE users SET password_hash = '<hash-from-step-1>' WHERE email = '<member-email>';
+   UPDATE users SET password_hash = '<hash-from-step-1>' WHERE lower(email) = lower('<member-email>');
    ```
+   `psql` must print exactly `UPDATE 1`. `UPDATE 0` means no row matched (wrong email) and
+   nothing was changed.
 3. Share the new password with the member out-of-band, never through a channel that would keep
    it in plaintext afterwards (e.g. not a ticket or issue comment). There is no in-app "change
    password" flow in the MVP, so a member who wants to change it again goes through this same
