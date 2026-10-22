@@ -64,14 +64,9 @@ This starts three services, connected on a shared Docker network:
 
 The `backend` and `frontend` source directories are bind-mounted into their containers, so code changes on the host are picked up live, no rebuild required. `backend` waits for `db` to report healthy (via a `pg_isready` healthcheck) before starting.
 
-### 3. Run migrations and load demo data
+### 3. Migrations and demo data
 
-```bash
-docker compose exec backend npm run migration:run
-docker compose exec backend npm run seed
-```
-
-The seed is idempotent and prints each demo account's login (including the initial moderator) at the end — see `docs/contributing.md#recreating-a-blank-database-and-reseeding` for details.
+The backend container runs migrations and the seed itself on every `docker compose up`; to run them by hand: `docker compose exec backend npm run migration:run` and `docker compose exec backend npm run seed`. The seed is idempotent and prints each demo account's login (including the initial moderator) at the end — see `docs/contributing.md#recreating-a-blank-database-and-reseeding` for details.
 
 
 ### 4. Stop the stack
@@ -131,9 +126,7 @@ The integration tests use a separate database named `<POSTGRES_DB>_test`, create
 
 ```bash
 docker compose down -v          # removes the database volume
-docker compose up --build -d
-docker compose exec backend npm run migration:run
-docker compose exec backend npm run seed
+docker compose up --build -d   # migrations and seed run automatically
 ```
 
 More detail in `docs/contributing.md#recreating-a-blank-database-and-reseeding`.

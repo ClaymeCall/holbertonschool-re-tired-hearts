@@ -24,6 +24,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile.dev
     restart: unless-stopped
+    # Migrations and the (idempotent) demo seed run on every start, before the watcher.
+    command: sh -c "npm run migration:run && npm run seed && npm run start:dev"
     environment:
       DB_HOST: db
       DB_PORT: 5432

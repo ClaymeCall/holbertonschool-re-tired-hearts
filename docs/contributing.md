@@ -42,21 +42,17 @@ build(frontend): add vue-router, pinia and vitest tooling
 
 The schema is managed through versioned TypeORM migrations (see `docs/backend-structure.md#commands`) — there is no `synchronize: true`, so an empty Postgres volume has no tables until migrations run.
 
-Run migrations against the `backend` container after any first `docker compose up --build`, and again any time you reset the volume:
+The `backend` service runs `npm run migration:run` and `npm run seed` itself on every `docker compose up` (see the `command` in `docker-compose.yml`), before starting the watcher, so a fresh or reset volume is ready without any manual step. To run migrations by hand, for example after adding one while the stack is up:
 
 ```bash
 docker compose exec backend npm run migration:run
 ```
 
-Skipping this step is the most common "it worked yesterday" surprise in this project: the stack starts fine, but every request that touches the database (e.g. `POST /v1/auth/register`) fails with `relation "users" does not exist` until migrations are run.
-
 ## Recreating a blank database and reseeding
 
 ```bash
 docker compose down -v                        # stops services and removes db_data
-docker compose up --build
-docker compose exec backend npm run migration:run
-docker compose exec backend npm run seed
+docker compose up --build   # migrations and seed run automatically
 ```
 
 Postgres reinitializes using `POSTGRES_DB`/`POSTGRES_USER`/`POSTGRES_PASSWORD` from `.env` (see `docker-compose.yml`).
