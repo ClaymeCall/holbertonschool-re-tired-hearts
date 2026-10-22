@@ -33,18 +33,25 @@ const focus = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:rin
 // (à partir de `xl`, ou de `2xl` quand le texte est agrandi), sinon c'est le menu déroulant.
 const LAYOUTS = {
   xl: {
-    nav: 'xl:static xl:flex xl:flex-1 xl:flex-row xl:flex-nowrap xl:items-center xl:justify-end xl:gap-1 xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none',
+    container: 'xl:grid xl:grid-cols-[1fr_auto_1fr]',
+    nav: 'xl:contents',
+    center: 'xl:col-start-2 xl:flex xl:flex-row xl:items-center xl:justify-center xl:gap-1',
+    right: 'xl:col-start-3 xl:flex xl:flex-row xl:items-center xl:justify-end xl:gap-1',
     menuButton: 'xl:hidden',
     ghost: 'xl:min-h-11 xl:w-auto xl:whitespace-nowrap xl:px-3 xl:text-base',
     solid: 'xl:min-h-11 xl:w-auto xl:whitespace-nowrap xl:px-4 xl:text-base',
   },
   '2xl': {
-    nav: '2xl:static 2xl:flex 2xl:flex-1 2xl:flex-row 2xl:flex-nowrap 2xl:items-center 2xl:justify-end 2xl:gap-1 2xl:border-0 2xl:bg-transparent 2xl:p-0 2xl:shadow-none',
+    container: '2xl:grid 2xl:grid-cols-[1fr_auto_1fr]',
+    nav: '2xl:contents',
+    center: '2xl:col-start-2 2xl:flex 2xl:flex-row 2xl:items-center 2xl:justify-center 2xl:gap-1',
+    right: '2xl:col-start-3 2xl:flex 2xl:flex-row 2xl:items-center 2xl:justify-end 2xl:gap-1',
     menuButton: '2xl:hidden',
     ghost: '2xl:min-h-11 2xl:w-auto 2xl:whitespace-nowrap 2xl:px-3 2xl:text-base',
     solid: '2xl:min-h-11 2xl:w-auto 2xl:whitespace-nowrap 2xl:px-4 2xl:text-base',
   },
 }
+// Grande barre : logo à gauche, liens principaux au centre, compte (profil, déconnexion) à droite.
 const layout = computed(() => LAYOUTS[zoomed.value ? '2xl' : 'xl'])
 const ghost = computed(
   () => `inline-flex min-h-14 w-full items-center rounded-full px-5 text-lg font-semibold text-ink hover:bg-mist ${layout.value.ghost} ${focus}`,
@@ -56,7 +63,7 @@ const solid = computed(
 
 <template>
   <header class="sticky top-0 z-20 border-b border-mist-deep bg-paper/95 backdrop-blur" @keydown.esc="menuOpen = false">
-    <div class="relative mx-auto flex max-w-7xl items-center justify-between gap-x-4 px-4 py-2 sm:px-6">
+    <div class="relative mx-auto flex max-w-7xl items-center justify-between gap-x-4 px-4 py-2 sm:px-6" :class="layout.container">
       <router-link
         :to="{ name: session.isAuthenticated ? 'events' : 'home' }"
         :aria-label="session.isAuthenticated ? 'Re-Tired Hearts, retour aux sorties' : 'Re-Tired Hearts, retour à l\'accueil'"
@@ -86,20 +93,24 @@ const solid = computed(
         :class="[layout.nav, menuOpen ? 'flex' : 'hidden']"
       >
         <template v-if="session.isAuthenticated">
-          <router-link :to="{ name: 'events' }" :class="ghost">Sorties</router-link>
-          <router-link :to="{ name: 'my-events' }" :class="ghost">Mes sorties</router-link>
-          <router-link :to="{ name: 'members' }" :class="ghost">Membres</router-link>
-          <router-link :to="{ name: 'contacts' }" :class="[ghost, 'gap-2']">
-            Contacts
-            <UnreadBadge :count="unread.total" />
-          </router-link>
-          <router-link :to="{ name: 'profile' }" :class="ghost">Mon profil</router-link>
-          <button type="button" :class="solid" @click="logout">Se déconnecter</button>
+          <div class="flex flex-col gap-1" :class="layout.center">
+            <router-link :to="{ name: 'events' }" :class="ghost">Sorties</router-link>
+            <router-link :to="{ name: 'my-events' }" :class="ghost">Mes sorties</router-link>
+            <router-link :to="{ name: 'members' }" :class="ghost">Membres</router-link>
+            <router-link :to="{ name: 'contacts' }" :class="[ghost, 'gap-2']">
+              Contacts
+              <UnreadBadge :count="unread.total" />
+            </router-link>
+          </div>
+          <div class="flex flex-col gap-1" :class="layout.right">
+            <router-link :to="{ name: 'profile' }" :class="ghost">Mon profil</router-link>
+            <button type="button" :class="solid" @click="logout">Se déconnecter</button>
+          </div>
         </template>
-        <template v-else>
+        <div v-else class="flex flex-col gap-1" :class="layout.right">
           <router-link :to="{ name: 'login' }" :class="ghost">Connexion</router-link>
           <router-link :to="{ name: 'register' }" :class="solid">Inscription</router-link>
-        </template>
+        </div>
       </nav>
 
     </div>

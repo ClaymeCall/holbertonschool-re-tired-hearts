@@ -36,15 +36,18 @@ describe('AppHeader', () => {
     chat.getUnreadCount.mockResolvedValue(0)
   })
 
-  it('tient sur une seule ligne : navigation en ligne sans retour à la ligne, « Se déconnecter » en dernier', async () => {
+  it('tient sur une seule ligne : liens principaux au centre, profil et déconnexion à droite', async () => {
     const wrapper = mountHeader()
-    useSessionStore().user = { id: 1, isAdmin: true }
+    useSessionStore().user = { id: 1 }
     await flushPromises()
     const nav = wrapper.get('nav')
-    expect(nav.classes()).toEqual(expect.arrayContaining(['xl:flex-nowrap', 'xl:justify-end', 'xl:flex-1']))
-    expect(nav.classes()).not.toContain('md:flex-wrap')
+    expect(nav.classes()).toContain('xl:contents')
+    const [center, right] = nav.findAll(':scope > div')
+    expect(center.classes()).toEqual(expect.arrayContaining(['xl:col-start-2', 'xl:justify-center']))
+    expect(right.classes()).toEqual(expect.arrayContaining(['xl:col-start-3', 'xl:justify-end']))
+    expect(center.findAll('a').map((a) => a.text().replace(/\s+/g, ' ').trim())).toEqual(['Sorties', 'Mes sorties', 'Membres', 'Contacts'])
+    expect(right.findAll('a, button').map((el) => el.text())).toEqual(['Mon profil', 'Se déconnecter'])
     const items = nav.findAll('a, button')
-    expect(items[items.length - 1].text()).toBe('Se déconnecter')
     expect(items.every((item) => item.classes().includes('xl:whitespace-nowrap'))).toBe(true)
   })
 
@@ -54,8 +57,8 @@ describe('AppHeader', () => {
     const wrapper = mountHeader()
     useSessionStore().user = { id: 1 }
     await flushPromises()
-    expect(wrapper.get('nav').classes()).toEqual(expect.arrayContaining(['2xl:flex-nowrap', '2xl:flex-1']))
-    expect(wrapper.get('nav').classes()).not.toContain('xl:flex-nowrap')
+    expect(wrapper.get('nav').classes()).toContain('2xl:contents')
+    expect(wrapper.get('nav').classes()).not.toContain('xl:contents')
     zoomed.value = false
   })
 
