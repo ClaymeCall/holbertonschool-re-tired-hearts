@@ -4,6 +4,7 @@ import { createPinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import axe from 'axe-core'
 import ContactsView from '../views/ContactsView.vue'
+import { ApiError } from '../services/api'
 import * as people from '../services/people'
 import * as chat from '../services/conversations'
 
@@ -78,6 +79,13 @@ describe('ContactsView', () => {
     chat.listConversations.mockResolvedValue([])
     await mountView()
     expect(wrapper.text()).toContain('aucun contact')
+  })
+
+  it('explique qu\'il faut un profil approuvé quand l\'API répond 403', async () => {
+    chat.listConversations.mockRejectedValue(new ApiError(403, 'x'))
+    await mountView()
+    expect(wrapper.get('[role="alert"]').text()).toContain('approuvé votre profil')
+    expect(wrapper.findAll('button').find((b) => b.text().includes('Réessayer'))).toBeUndefined()
   })
 
   it('propose de réessayer en cas d\'erreur', async () => {
