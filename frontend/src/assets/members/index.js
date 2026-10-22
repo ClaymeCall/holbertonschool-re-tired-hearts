@@ -23,5 +23,30 @@ import men09 from './men-09.webp'
 import men10 from './men-10.webp'
 import men11 from './men-11.webp'
 
+// Portraits attribués aux membres de la seed (nom affiché sans accents, en minuscules) : chaque membre
+// visible de la démonstration a une photo différente. Les autres profils reçoivent une photo du même genre.
+export const portraitsByName = {
+  'alice moreau': women01,
+  'emma bernard': women02,
+  'colette dubois': women03,
+  'francoise garnier': women04,
+  'monique fontaine': women05,
+  'odile perrin': women06,
+  'josette faure': women07,
+  'nicole andre': women08,
+  'christiane blanc': women09,
+  'denise lemoine': women10,
+  'bob laurent': men01,
+  'dave robert': men02,
+  'farid haddad': men03,
+  'gerard lefebvre': men04,
+  'jacques moreau': men05,
+  'henri vidal': men06,
+  'lucien marchand': men07,
+  'michel giraud': men08,
+  'bernard roche': men09,
+  'pierre mercier': men10,
+}
+
 export const womenPortraits = [women01, women02, women03, women04, women05, women06, women07, women08, women09, women10]
 export const menPortraits = [men01, men02, men03, men04, men05, men06, men07, men08, men09, men10, men11]

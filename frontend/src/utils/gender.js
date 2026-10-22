@@ -21,6 +21,9 @@ const MASCULINE = [
 
 const normalize = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 
+// Nom affiché sans accents, en minuscules et sans espaces en trop : clé des portraits attribués.
+export const normalizeName = (displayName) => normalize(String(displayName ?? '')).replace(/\s+/g, ' ')
+
 // 'feminine', 'masculine' ou null quand on ne sait pas : on ne devine jamais.
 export function guessGender(displayName) {
   const first = normalize(String(displayName ?? '')).split(/\s+/)[0]
