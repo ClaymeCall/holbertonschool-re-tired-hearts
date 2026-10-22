@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import CityField from '../components/CityField.vue'
 import FormField from '../components/FormField.vue'
 import BaseButton from '../components/BaseButton.vue'
 import CheckboxField from '../components/CheckboxField.vue'
@@ -84,12 +85,11 @@ onMounted(load)
 
       <FormField id="displayName" v-model="form.displayName" label="Nom affiché" autocomplete="nickname" :error="errors.displayName" />
       <FormField id="bio" v-model="form.bio" label="Présentation (facultatif)" multiline />
-      <FormField
+      <CityField
         id="approximateLocation"
         v-model="form.approximateLocation"
         label="Ville ou région"
         hint="N’indiquez jamais votre adresse exacte."
-        autocomplete="address-level2"
         :error="errors.approximateLocation"
       />
 

@@ -121,7 +121,7 @@ describe('Moderation API (integration)', () => {
         expect(res.status).toBe(code);
         expect(await profileStatus(target)).toBe(after);
         if (code === 200) {
-          expect(res.body).toMatchObject({ id: targetP, userId: target.id, moderationStatus: after });
+          expect(res.body).toMatchObject({ id: targetP, userId: target.id, accountStatus: 'active', moderationStatus: after });
           expect(await audit()).toEqual([
             { moderator_id: moderator.id, target_type: 'profile', target_id: targetP, action: auditAction, reason: 'because' },
           ]);
@@ -160,6 +160,19 @@ describe('Moderation API (integration)', () => {
       expect(res.body.every((p: { moderationStatus: string }) => p.moderationStatus === 'pending')).toBe(true);
       // The account id, distinct from the profile id: what suspend/reactivate need.
       expect(res.body.map((p: { userId: number }) => p.userId)).toEqual([pending1.id, pending2.id]);
+      expect(res.body.every((p: { accountStatus: string }) => p.accountStatus === 'active')).toBe(true);
+    });
+
+    it('reports the owner account status, so the screen offers suspend or reactivate', async () => {
+      const suspended = await createActor(ctx, { profile: 'pending', accountStatus: 'suspended' });
+      const active = await createActor(ctx, { profile: 'pending' });
+
+      const res = await call('get', '/moderation/profiles?status=pending', moderator).expect(200);
+
+      expect(res.body.map((p: { userId: number; accountStatus: string }) => [p.userId, p.accountStatus])).toEqual([
+        [suspended.id, 'suspended'],
+        [active.id, 'active'],
+      ]);
     });
 
     it('rejects an unknown status filter and a missing one (400)', async () => {
