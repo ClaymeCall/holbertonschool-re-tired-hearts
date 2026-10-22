@@ -31,9 +31,9 @@ export async function seedEvents(dataSource: DataSource, users: SeedUsers): Prom
   return {
     published: await findOrCreateEvent(dataSource, {
       organizerId: users.alice.id,
-      interestName: 'Walking and hiking',
-      title: "Sunday hike around Parc de la Tête d'Or",
-      description: 'A gentle 5km walk, meeting at the main gate at 10am.',
+      interestName: 'Randonnée et marche',
+      title: 'Randonnée dominicale autour du Parc de la Tête d’Or',
+      description: 'Une marche tranquille de 5 km, rendez-vous à la grande porte à 10 h. Chaussures confortables conseillées.',
       approximateLocation: 'Lyon',
       startsAt: futureDate(14),
       capacity: 12,
@@ -41,9 +41,9 @@ export async function seedEvents(dataSource: DataSource, users: SeedUsers): Prom
     }),
     draft: await findOrCreateEvent(dataSource, {
       organizerId: users.alice.id,
-      interestName: 'Gardening',
-      title: 'Community garden morning (planning)',
-      description: 'Draft — details still being worked out, visible only to its organizer and moderators.',
+      interestName: 'Jardinage',
+      title: 'Matinée au jardin partagé (en préparation)',
+      description: 'Brouillon : les détails sont encore à définir, visible seulement de son organisatrice et des modérateurs.',
       approximateLocation: 'Lyon',
       startsAt: futureDate(30),
       capacity: 8,
@@ -51,9 +51,9 @@ export async function seedEvents(dataSource: DataSource, users: SeedUsers): Prom
     }),
     completed: await findOrCreateEvent(dataSource, {
       organizerId: users.bob.id,
-      interestName: 'Board games and cards',
-      title: 'Belote afternoon',
-      description: 'Past event, marked completed by its organizer.',
+      interestName: 'Jeux de société et de cartes',
+      title: 'Après-midi belote',
+      description: 'Une après-midi de belote entre amis, terminée et marquée comme telle par son organisateur.',
       approximateLocation: 'Lyon',
       startsAt: pastDate(10),
       capacity: 6,
@@ -61,9 +61,9 @@ export async function seedEvents(dataSource: DataSource, users: SeedUsers): Prom
     }),
     cancelled: await findOrCreateEvent(dataSource, {
       organizerId: users.alice.id,
-      interestName: 'Cinema and theatre',
-      title: 'Outdoor film screening',
-      description: 'Cancelled by its organizer due to weather.',
+      interestName: 'Cinéma et théâtre',
+      title: 'Séance de cinéma en plein air',
+      description: 'Annulée par son organisatrice à cause de la météo.',
       approximateLocation: 'Lyon',
       startsAt: futureDate(5),
       capacity: 20,
@@ -161,9 +161,9 @@ export async function seedConversationAndMessages(dataSource: DataSource, users:
       [
         conversationId,
         users.bob.id,
-        'Hi Alice, looking forward to the Sunday hike!',
+        'Bonjour Alice, j’ai hâte d’être à la randonnée de dimanche !',
         users.alice.id,
-        'Great, see you there at 10am!',
+        'Parfait, rendez-vous à 10 h à la grande porte !',
       ],
     );
   }
@@ -230,7 +230,7 @@ export async function seedModerationActions(
       targetType: 'user_account',
       targetId: users.dave.id,
       action: 'suspend_account',
-      reason: 'Seed demo account: suspended to demonstrate the account-restriction journey.',
+      reason: 'Compte de démonstration : suspendu pour montrer la restriction d’un compte.',
     });
   }
 }
