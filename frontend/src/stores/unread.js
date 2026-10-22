@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { listConversations } from '../services/conversations'
+import { getUnreadCount } from '../services/conversations'
 
 // Nombre de messages non lus, affiché sur « Contacts » dans l'en-tête.
 export const useUnreadStore = defineStore('unread', {
@@ -7,8 +7,7 @@ export const useUnreadStore = defineStore('unread', {
   actions: {
     async refresh() {
       try {
-        const conversations = await listConversations()
-        this.total = conversations.reduce((sum, conversation) => sum + conversation.unreadCount, 0)
+        this.total = await getUnreadCount()
       } catch {
         // On garde la dernière valeur connue : un échec ponctuel ne doit rien afficher d'alarmant.
       }

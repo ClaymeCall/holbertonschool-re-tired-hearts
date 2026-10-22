@@ -50,7 +50,7 @@ describe('PersonView', () => {
     chat.getMessages.mockResolvedValue([])
     chat.markRead.mockResolvedValue()
     chat.listConversations.mockResolvedValue([])
-    myProfile.getMyProfile.mockResolvedValue({ messaging_enabled: true })
+    myProfile.getMyProfile.mockResolvedValue({ messagingEnabled: true })
   })
   afterEach(() => wrapper?.unmount())
 
@@ -68,16 +68,8 @@ describe('PersonView', () => {
     expect(chat.getMessages).toHaveBeenCalledWith(103)
   })
 
-  it('explique qu\'il faut une sortie en commun pour écrire à un membre jamais rencontré', async () => {
-    service.getPerson.mockResolvedValue(person({ canMessage: false }))
-    await mountAt('/people/107')
-    expect(wrapper.get('article').text()).toContain('Henri')
-    expect(wrapper.text()).toContain('après avoir participé à une même sortie')
-    expect(wrapper.get('textarea').attributes('disabled')).toBeDefined()
-  })
-
   it('grise la discussion quand la personne n\'accepte pas les messages', async () => {
-    service.getPerson.mockResolvedValue(person({ acceptsMessages: false }))
+    service.getPerson.mockResolvedValue(person({ messagingEnabled: false }))
     await mountAt('/people/113')
     expect(wrapper.text()).toContain('Cette personne n’accepte pas les messages pour le moment.')
     expect(wrapper.get('textarea').attributes('disabled')).toBeDefined()

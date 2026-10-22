@@ -32,7 +32,7 @@ function mountHeader() {
 
 describe('AppHeader', () => {
   beforeEach(() => {
-    chat.listConversations.mockResolvedValue([])
+    chat.getUnreadCount.mockResolvedValue(0)
   })
 
   it('propose connexion et inscription aux visiteurs', () => {
@@ -63,10 +63,7 @@ describe('AppHeader', () => {
   })
 
   it('met une puce rouge sur Contacts quand des messages ne sont pas lus', async () => {
-    chat.listConversations.mockResolvedValue([
-      { person: { id: 2 }, unreadCount: 2, lastMessage: {} },
-      { person: { id: 105 }, unreadCount: 1, lastMessage: {} },
-    ])
+    chat.getUnreadCount.mockResolvedValue(3)
     const wrapper = mountHeader()
     useSessionStore().user = { id: 1 }
     await flushPromises()

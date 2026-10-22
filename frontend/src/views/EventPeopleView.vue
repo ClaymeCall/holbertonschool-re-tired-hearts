@@ -4,7 +4,8 @@ import { useRoute } from 'vue-router'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
 import PersonAvatar from '../components/PersonAvatar.vue'
-import { getEvent, listParticipants } from '../services/events'
+import { getEvent } from '../services/events'
+import { listParticipants } from '../services/participants'
 
 const route = useRoute()
 
