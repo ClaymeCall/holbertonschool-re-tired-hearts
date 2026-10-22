@@ -61,7 +61,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+  <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <h1 class="text-4xl font-extrabold tracking-tight text-ink">Les sorties</h1>
       <BaseButton :to="{ name: 'event-new' }">Proposer une sortie</BaseButton>
@@ -91,7 +91,7 @@ onMounted(async () => {
 
       <template v-else>
         <p ref="top" class="mb-4 text-lg font-semibold text-muted" aria-live="polite">{{ total }} {{ total > 1 ? 'sorties' : 'sortie' }}</p>
-        <ul class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <li v-for="event in events" :key="event.id" class="h-[20rem]">
             <EventCard :event="event" @select="selected = event" />
           </li>
