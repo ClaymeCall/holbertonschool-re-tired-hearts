@@ -174,16 +174,16 @@ onMounted(load)
               <p v-if="profile.bio" class="max-w-xl text-lg text-ink">{{ profile.bio }}</p>
             </div>
           </div>
-          <div class="flex flex-wrap gap-3">
-            <BaseButton v-if="active === 'pending'" :loading="working" @click="approve(profile)">Approuver le profil</BaseButton>
-            <BaseButton v-if="active === 'blocked'" :loading="working" @click="unblock(profile)">Débloquer le profil</BaseButton>
-            <BaseButton v-if="active === 'approved'" variant="danger" :disabled="working" @click="pending = { kind: 'block', target: profile }">
+          <div class="grid w-full gap-3 sm:grid-cols-2 lg:w-[28rem] lg:shrink-0">
+            <BaseButton v-if="active === 'pending'" block :loading="working" @click="approve(profile)">Approuver le profil</BaseButton>
+            <BaseButton v-if="active === 'blocked'" block :loading="working" @click="unblock(profile)">Débloquer le profil</BaseButton>
+            <BaseButton v-if="active === 'approved'" block variant="danger" :disabled="working" @click="pending = { kind: 'block', target: profile }">
               Bloquer le profil
             </BaseButton>
-            <BaseButton v-if="profile.accountStatus === 'active'" variant="secondary" :disabled="working" @click="pending = { kind: 'suspend', target: profile }">
+            <BaseButton v-if="profile.accountStatus === 'active'" block variant="secondary" :disabled="working" @click="pending = { kind: 'suspend', target: profile }">
               Suspendre le compte
             </BaseButton>
-            <BaseButton v-else-if="profile.accountStatus === 'suspended'" variant="secondary" :loading="working" @click="reactivate(profile)">
+            <BaseButton v-else-if="profile.accountStatus === 'suspended'" block variant="secondary" :loading="working" @click="reactivate(profile)">
               Réactiver le compte
             </BaseButton>
           </div>
