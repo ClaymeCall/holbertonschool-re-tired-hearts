@@ -19,25 +19,33 @@ export const MODERATOR_SEED: SeedUserSpec = {
   isAdmin: true,
 };
 
-// Covers the three member scenarios the Phase 1/4 acceptance bars need to demo against:
-// approved + organizer (alice), approved + plain member (bob), pending (carol, still in
-// the moderation queue), and approved-but-later-suspended (dave, seeded further in
-// raw-schema.seed.ts to demonstrate the account-restriction + cascade behavior).
-export const DEMO_MEMBER_SEEDS: Record<'alice' | 'bob' | 'carol' | 'dave', SeedUserSpec> = {
-  alice: { email: 'alice@retired-hearts.demo', password: 'DemoMember123!' },
-  bob: { email: 'bob@retired-hearts.demo', password: 'DemoMember123!' },
-  carol: { email: 'carol@retired-hearts.demo', password: 'DemoMember123!' },
-  dave: { email: 'dave@retired-hearts.demo', password: 'DemoMember123!' },
-};
+// Covers the member scenarios the demonstrations need: approved + organizer (alice, emma),
+// approved + plain member (bob), approved with no conversation yet (farid), pending (carol,
+// gaby, simone, raymond: the moderation queue), blocked (hugo: the "unblock" demonstration) and
+// approved-but-later-suspended (dave, seeded further in raw-schema.seed.ts to demonstrate the
+// account-restriction + cascade behavior). The other members (colette to denise) make the site
+// look alive: more profiles, events and conversations (community.seed.ts). Every member signs in
+// with the same demo password.
+export const MEMBER_KEYS = [
+  'alice', 'bob', 'carol', 'dave', 'emma', 'farid', 'gaby', 'hugo',
+  'colette', 'gerard', 'francoise', 'jacques', 'monique', 'henri', 'odile', 'lucien', 'josette',
+  'michel', 'nicole', 'bernard', 'christiane', 'pierre', 'simone', 'raymond', 'denise',
+] as const;
 
-export type SeedUsers = Record<'moderator' | keyof typeof DEMO_MEMBER_SEEDS, User>;
+export type MemberKey = (typeof MEMBER_KEYS)[number];
+
+export const DEMO_MEMBER_SEEDS = Object.fromEntries(
+  MEMBER_KEYS.map((key) => [key, { email: `${key}@retired-hearts.demo`, password: 'DemoMember123!' }]),
+) as Record<MemberKey, SeedUserSpec>;
+
+export type SeedUsers = Record<'moderator' | MemberKey, User>;
 
 export async function seedUsers(dataSource: DataSource): Promise<SeedUsers> {
   const repo = dataSource.getRepository(User);
 
   const moderator = await findOrCreateUser(repo, MODERATOR_SEED);
-  const members = {} as Record<keyof typeof DEMO_MEMBER_SEEDS, User>;
-  for (const key of Object.keys(DEMO_MEMBER_SEEDS) as (keyof typeof DEMO_MEMBER_SEEDS)[]) {
+  const members = {} as Record<MemberKey, User>;
+  for (const key of MEMBER_KEYS) {
     members[key] = await findOrCreateUser(repo, DEMO_MEMBER_SEEDS[key]);
   }
 
