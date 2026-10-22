@@ -1,6 +1,6 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { EventsService } from '../events/events.service';
 import { EventResponseDto } from '../events/dto/event-response.dto';
 import { Profile, ProfileModerationStatus } from '../profiles/entities/profile.entity';
@@ -11,6 +11,7 @@ import {
   ModerationActionResponseDto,
   toModerationActionResponse,
 } from './dto/moderation-action-response.dto';
+import { ModeratedProfile } from './dto/moderation-profile-response.dto';
 import { ModerationAction, ModerationActionType, ModerationTargetType } from './entities/moderation-action.entity';
 
 @Injectable()
@@ -25,8 +26,15 @@ export class ModerationService {
 
   // ---------- reading ----------
 
-  listProfilesByStatus(status: ProfileModerationStatus): Promise<Profile[]> {
-    return this.profiles.listByStatus(status);
+  async listProfilesByStatus(status: ProfileModerationStatus): Promise<ModeratedProfile[]> {
+    const profiles = await this.profiles.listByStatus(status);
+    if (profiles.length === 0) {
+      return [];
+    }
+    const owners = await this.users.find({ where: { id: In(profiles.map((p) => p.userId)) } });
+    const statusOf = new Map(owners.map((u) => [u.id, u.accountStatus]));
+    // Every profile has an owner (FK): a missing row would be a data integrity error.
+    return profiles.map((p) => Object.assign(p, { accountStatus: statusOf.get(p.userId) as AccountStatus }));
   }
 
   listActions(): Promise<ModerationActionResponseDto[]> {
@@ -37,31 +45,34 @@ export class ModerationService {
 
   // ---------- profiles ----------
 
-  async approveProfile(moderator: User, id: number, reason?: string): Promise<Profile> {
+  async approveProfile(moderator: User, id: number, reason?: string): Promise<ModeratedProfile> {
     await this.assertCanModerateProfile(moderator, id);
-    return this.dataSource.transaction(async (manager) => {
-      const profile = await this.profiles.approve(id, manager);
+    const profile = await this.dataSource.transaction(async (manager) => {
+      const approved = await this.profiles.approve(id, manager);
       await this.record(manager, moderator, ModerationTargetType.PROFILE, id, ModerationActionType.APPROVE_PROFILE, reason);
-      return profile;
+      return approved;
     });
+    return this.withAccountStatus(profile);
   }
 
-  async blockProfile(moderator: User, id: number, reason?: string): Promise<Profile> {
+  async blockProfile(moderator: User, id: number, reason?: string): Promise<ModeratedProfile> {
     await this.assertCanModerateProfile(moderator, id);
-    return this.dataSource.transaction(async (manager) => {
-      const profile = await this.profiles.block(id, manager);
+    const profile = await this.dataSource.transaction(async (manager) => {
+      const blocked = await this.profiles.block(id, manager);
       await this.record(manager, moderator, ModerationTargetType.PROFILE, id, ModerationActionType.BLOCK_PROFILE, reason);
-      return profile;
+      return blocked;
     });
+    return this.withAccountStatus(profile);
   }
 
-  async unblockProfile(moderator: User, id: number, reason?: string): Promise<Profile> {
+  async unblockProfile(moderator: User, id: number, reason?: string): Promise<ModeratedProfile> {
     await this.assertCanModerateProfile(moderator, id);
-    return this.dataSource.transaction(async (manager) => {
-      const profile = await this.profiles.unblock(id, manager);
+    const profile = await this.dataSource.transaction(async (manager) => {
+      const unblocked = await this.profiles.unblock(id, manager);
       await this.record(manager, moderator, ModerationTargetType.PROFILE, id, ModerationActionType.UNBLOCK_PROFILE, reason);
-      return profile;
+      return unblocked;
     });
+    return this.withAccountStatus(profile);
   }
 
   // ---------- accounts ----------
@@ -126,6 +137,13 @@ export class ModerationService {
   private async assertCanModerateProfile(moderator: User, profileId: number): Promise<void> {
     const profile = await this.profiles.findByIdForModeration(profileId);
     await this.assertCanModerate(moderator, profile.userId);
+  }
+
+  // Read after commit, like cancelEvent: the account is not touched by a profile action, so this
+  // is the status the moderator's screen needs to offer suspend or reactivate.
+  private async withAccountStatus(profile: Profile): Promise<ModeratedProfile> {
+    const owner = await this.findUserOrThrow(profile.userId);
+    return Object.assign(profile, { accountStatus: owner.accountStatus });
   }
 
   private async findUserOrThrow(id: number): Promise<User> {
