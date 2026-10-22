@@ -114,6 +114,13 @@ describe('CityField', () => {
     expect(wrapper.get('#city-status').text()).toContain('indisponibles')
   })
 
+  it('en version compacte, place l\'aide sous le champ pour ne pas décaler les champs voisins', () => {
+    wrapper = mount(CityField, { props: { id: 'city2', label: 'Ville', modelValue: '', hint: 'Jamais d\'adresse exacte.', compact: true }, attachTo: document.body })
+    const children = [...wrapper.element.children].map((el) => el.tagName)
+    expect(children.indexOf('INPUT')).toBeLessThan(children.indexOf('P'))
+    expect(wrapper.get('input').attributes('aria-describedby')).toContain('city2-hint')
+  })
+
   it('ne présente pas de violation d\'accessibilité détectable', async () => {
     vi.useRealTimers()
     mountField()

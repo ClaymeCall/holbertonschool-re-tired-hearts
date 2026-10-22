@@ -102,7 +102,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 <template>
   <div class="relative">
     <label :for="id" :class="labelClasses">{{ label }}</label>
-    <p v-if="hint" :id="`${id}-hint`" :class="[textClasses, 'mt-0.5 text-muted']">{{ hint }}</p>
+    <p v-if="hint && !compact" :id="`${id}-hint`" :class="[textClasses, 'mt-0.5 text-muted']">{{ hint }}</p>
     <input
       :id="id"
       type="text"
@@ -141,6 +141,7 @@ onBeforeUnmount(() => clearTimeout(timer))
         {{ suggestion.name }}<span v-if="suggestion.postalCode" class="text-muted"> ({{ suggestion.postalCode }})</span>
       </li>
     </ul>
+    <p v-if="hint && compact" :id="`${id}-hint`" :class="[textClasses, 'mt-0.5 text-muted']">{{ hint }}</p>
     <p class="sr-only" role="status" aria-live="polite">{{ open ? `${suggestions.length} suggestions disponibles` : '' }}</p>
     <p v-if="unavailable" :id="`${id}-status`" :class="[textClasses, 'mt-1 text-muted']">Les suggestions de villes sont indisponibles : saisissez votre ville à la main.</p>
     <p v-if="error" :id="`${id}-error`" class="mt-1 text-sm font-semibold text-danger">{{ error }}</p>
