@@ -45,6 +45,13 @@ describe('ContactsView', () => {
     expect(wrapper.findAll('a').find((a) => a.text().startsWith('Ouvrir la discussion')).attributes('href')).toBe('/people/2')
   })
 
+  it('montre la photo de chaque contact', async () => {
+    await mountView()
+    const photos = wrapper.findAll('li img')
+    expect(photos.length).toBeGreaterThanOrEqual(2)
+    expect(row('Colette').find('img').exists()).toBe(true)
+  })
+
   it('met une puce rouge avec le nombre de messages non lus sur le contact concerné', async () => {
     await mountView()
     const badge = row('Colette').find('.bg-red-600')
