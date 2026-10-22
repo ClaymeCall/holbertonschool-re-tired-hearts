@@ -35,14 +35,20 @@ describe('AppHeader', () => {
     chat.getUnreadCount.mockResolvedValue(0)
   })
 
-  it('garde « Se déconnecter » en dernier et la navigation alignée à droite, même quand elle passe sur plusieurs lignes', async () => {
+  it('garde « Se déconnecter » à droite de la barre, hors de la navigation qui peut passer à la ligne', async () => {
     const wrapper = mountHeader()
     useSessionStore().user = { id: 1, isAdmin: true }
     await flushPromises()
     const nav = wrapper.get('nav')
     expect(nav.classes()).toEqual(expect.arrayContaining(['md:flex-1', 'md:justify-end', 'md:flex-wrap']))
-    const items = nav.findAll('a, button')
-    expect(items[items.length - 1].text()).toBe('Se déconnecter')
+    // Sur grand écran : un bouton à part, après la navigation, qui ne peut donc pas tomber sur une 2e ligne.
+    const desktop = wrapper.findAll('button').find((b) => b.text() === 'Se déconnecter' && b.classes().includes('md:inline-flex'))
+    expect(desktop).toBeTruthy()
+    expect(nav.element.contains(desktop.element)).toBe(false)
+    expect(nav.element.compareDocumentPosition(desktop.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // Dans le menu déroulant (mobile), le bouton existe aussi, masqué sur grand écran.
+    const mobile = nav.findAll('button').find((b) => b.text() === 'Se déconnecter')
+    expect(mobile.classes()).toContain('md:hidden')
   })
 
   it('propose connexion et inscription aux visiteurs', () => {

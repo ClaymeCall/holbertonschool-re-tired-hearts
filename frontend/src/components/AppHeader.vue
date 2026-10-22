@@ -32,7 +32,7 @@ const solid = `inline-flex min-h-14 w-full items-center rounded-full bg-brand px
 
 <template>
   <header class="sticky top-0 z-20 border-b border-mist-deep bg-paper/95 backdrop-blur" @keydown.esc="menuOpen = false">
-    <div class="relative mx-auto flex max-w-6xl items-center justify-between gap-x-6 px-4 py-2 sm:px-6">
+    <div class="relative mx-auto flex max-w-6xl items-center justify-between gap-x-6 px-4 py-2 sm:px-6 md:items-start">
       <router-link
         :to="{ name: session.isAuthenticated ? 'events' : 'home' }"
         :aria-label="session.isAuthenticated ? 'Re-Tired Hearts, retour aux sorties' : 'Re-Tired Hearts, retour à l\'accueil'"
@@ -70,13 +70,16 @@ const solid = `inline-flex min-h-14 w-full items-center rounded-full bg-brand px
             <UnreadBadge :count="unread.total" />
           </router-link>
           <router-link :to="{ name: 'profile' }" :class="ghost">Mon profil</router-link>
-          <button type="button" :class="solid" @click="logout">Se déconnecter</button>
+          <!-- Dans le menu déroulant (mobile) seulement : sur grand écran le bouton est à droite de la barre, hors du retour à la ligne. -->
+          <button type="button" :class="[solid, 'md:hidden']" @click="logout">Se déconnecter</button>
         </template>
         <template v-else>
           <router-link :to="{ name: 'login' }" :class="ghost">Connexion</router-link>
           <router-link :to="{ name: 'register' }" :class="solid">Inscription</router-link>
         </template>
       </nav>
+
+      <button v-if="session.isAuthenticated" type="button" :class="[solid, 'hidden shrink-0 whitespace-nowrap md:inline-flex']" @click="logout">Se déconnecter</button>
     </div>
   </header>
 </template>
