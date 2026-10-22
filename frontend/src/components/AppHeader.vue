@@ -58,7 +58,7 @@ const solid = `inline-flex min-h-14 w-full items-center rounded-full bg-brand px
       <nav
         id="main-nav"
         aria-label="Navigation principale"
-        class="absolute left-0 right-0 top-full flex-col gap-1 border-b border-mist-deep bg-paper p-4 shadow-lg md:static md:flex md:flex-row md:flex-wrap md:items-center md:gap-2 md:border-0 md:bg-transparent md:p-0 md:shadow-none"
+        class="absolute left-0 right-0 top-full flex-col gap-1 border-b border-mist-deep bg-paper p-4 shadow-lg md:static md:flex md:flex-1 md:flex-row md:flex-wrap md:items-center md:justify-end md:gap-2 md:border-0 md:bg-transparent md:p-0 md:shadow-none"
         :class="menuOpen ? 'flex' : 'hidden'"
       >
         <template v-if="session.isAuthenticated">

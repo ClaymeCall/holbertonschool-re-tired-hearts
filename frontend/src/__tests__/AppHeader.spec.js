@@ -35,6 +35,16 @@ describe('AppHeader', () => {
     chat.getUnreadCount.mockResolvedValue(0)
   })
 
+  it('garde « Se déconnecter » en dernier et la navigation alignée à droite, même quand elle passe sur plusieurs lignes', async () => {
+    const wrapper = mountHeader()
+    useSessionStore().user = { id: 1, isAdmin: true }
+    await flushPromises()
+    const nav = wrapper.get('nav')
+    expect(nav.classes()).toEqual(expect.arrayContaining(['md:flex-1', 'md:justify-end', 'md:flex-wrap']))
+    const items = nav.findAll('a, button')
+    expect(items[items.length - 1].text()).toBe('Se déconnecter')
+  })
+
   it('propose connexion et inscription aux visiteurs', () => {
     const wrapper = mountHeader()
     expect(wrapper.text()).toContain('Connexion')
