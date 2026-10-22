@@ -81,7 +81,7 @@ Defects this method and the reviews brought to light:
 
 Stated plainly, so nothing is overstated at the presentation:
 
-- **No browser end-to-end tests.** The front end is tested with Vitest and a replaced API layer, so these tests do not prove that the interface and the real API agree. That was checked by hand (pages walked with the seeded accounts) and by the scripted demos; the pull request that connects the front end to the real API (#125) was still open and under review when this was written.
+- **No browser end-to-end tests.** The front end is tested with Vitest and a replaced API layer, so these tests do not prove that the interface and the real API agree. That was checked by hand (pages walked with the seeded accounts) and by the scripted demos; the front end has been connected to the real API since #125.
 - **No load or performance tests.** Concurrency is tested with a handful of simultaneous requests (six members for one place, two moderators, two first messages), not with real traffic.
 - **Expired sessions** are checked by hand (a token signed with a past expiry gets 401), and forged cookies by automated tests; there is no automated test with an expired token.
 - **Security headers (helmet) and CORS** are checked by hand only: the integration harness builds the application without them.
@@ -98,3 +98,14 @@ Everything above can be reproduced with the commands of section 1 on a blank dat
 ## 7. Front end screens added after this run
 
 The moderation screens (`ModerationView`), the legal and privacy page (`PrivacyView`) and the connection of the front end to the API (services tested by mocking `fetch`) are covered by the 197 front-end tests above, including an automated accessibility check (axe) on the moderation and privacy pages. Two parts of the front end remain simulated or local because the API has no route for them: the list of people present at an event and the saved contacts (see the README, "Known limitations").
+
+## 8. Scripted demonstrations
+
+Four scripts walk the API with `curl` on a seeded stack (`cd backend && npm run demo:phaseN`). Each call is compared with the status the documented rule predicts, and the script exits with 1 if one differs. They were run against a blank database seeded from `main`: all calls behaved as expected.
+
+| Script | Issue | What it shows | Rules |
+|---|---|---|---|
+| `demo:phase2` | #55 | A 2-place event goes from draft to cancelled. Refused: capacity 0, a date in the past, a draft seen or joined by another member, a second publication, the organizer joining their own event, a duplicate registration, a registration when the event is full (409), a capacity below the registered count. A withdrawal frees a place, a second withdrawal is refused. Completion is refused before the start date, a deletion is refused once published, cancellation is refused to a non-organizer, and a cancelled event no longer changes. | `docs/event-rules.md` |
+| `demo:phase4` | #83 | **Validation error**: empty name, unknown status filter (400). **Forbidden action**: a member sends `moderationStatus` or `isAdmin` (400), reaches the moderation routes (403), anonymous caller (401). **Moderation action**: approve, block, unblock, suspend, reactivate, with the effect on a session that is still valid, and a moderator cannot act on their own account (403). The audit log lists each action. | `docs/api-conventions.md`, `docs/role-assignment-rules.md`, `docs/profile-visibility-rules.md` |
+
+Limit: "completed" is never reached by `demo:phase2`: an event can only be completed after its start date, and the API refuses to create an event in the past. This transition is covered by the integration tests.

@@ -145,10 +145,14 @@ Scripted walks through the API with `curl`, run from your machine against the ru
 ```bash
 cd backend
 npm run demo:phase1   # anonymous request, invalid login, profile edit, discovery
+npm run demo:phase2   # event lifecycle: draft, publication, full event, withdrawal, cancellation
 npm run demo:phase3   # messaging: empty, invalid, successful and refused scenarios
+npm run demo:phase4   # validation errors, forbidden actions, moderation actions and audit log
 ```
 
 `demo:phase3` creates a new member at each run, and a re-seed does not restore data changed by a demo (for example Alice's bio): run the reset above before the live demonstration.
+
+Login is rate-limited (5 per minute): wait a minute between two demo scripts.
 
 ## Known limitations
 
