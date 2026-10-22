@@ -2,7 +2,7 @@
 
 Covers issue **#77**: the commands to run every test suite, the results, and an honest list of what is not tested. The acceptance scenarios and the security review are in `docs/security-review.md`.
 
-Results below were recorded on **2026-10-21** on a freshly built Docker Compose stack (database migrated and seeded), on the code of `main` of that afternoon. The moderation integration tests are those of #124; until it is merged the integration total is 130 instead of 188 (the numbers are given both ways).
+Results below were recorded on a freshly built Docker Compose stack (database migrated and seeded). The counts of the unit, integration and front-end tests and the build size were re-run on **2026-10-22**, on the code of `main` after the front-end pull requests #138 to #143; the type check dates from 2026-10-21.
 
 ## 1. Commands
 
@@ -33,11 +33,11 @@ The integration tests run on a separate database named `<DB_NAME>_test`, created
 | Layer | Command | Suites / files | Tests | Result |
 |---|---|---|---|---|
 | Back end, unit | `npm test` | 20 suites | 209 | all passed |
-| Back end, integration | `npm run test:integration` | 6 suites | 188 | all passed |
-| Front end | `npx vitest run` | 28 files | 197 | all passed |
+| Back end, integration | `npm run test:integration` | 6 suites | 189 | all passed |
+| Front end | `npx vitest run` | 32 files | 224 | all passed |
 | Back end type check | `tsc --noEmit` | , | , | no error |
-| Front end build | `vite build` | , | , | built (main script 197 kB, 66 kB compressed) |
-| Scripted demos | `demo:phase1`, `demo:phase3` | 2 scripts | every call checked | all as expected |
+| Front end build | `vite build` | , | , | built (main script 215 kB, 71 kB compressed) |
+| Scripted demos | `demo:phase1` to `demo:phase4` | 4 scripts | every call checked | all as expected |
 
 No test failed, and none is skipped (`.skip` or `.todo`) in the repository.
 
@@ -97,7 +97,7 @@ Everything above can be reproduced with the commands of section 1 on a blank dat
 
 ## 7. Front end screens added after this run
 
-The moderation screens (`ModerationView`), the legal and privacy page (`PrivacyView`) and the connection of the front end to the API (services tested by mocking `fetch`) are covered by the 197 front-end tests above, including an automated accessibility check (axe) on the moderation and privacy pages. Two parts of the front end remain simulated or local because the API has no route for them: the list of people present at an event and the saved contacts (see the README, "Known limitations").
+The moderation screens (`ModerationView`), the legal and privacy page (`PrivacyView`) and the connection of the front end to the API (services tested by mocking `fetch`) are covered by the 224 front-end tests above, including an automated accessibility check (axe) on the moderation and privacy pages. Two parts of the front end remain simulated or local because the API has no route for them: the list of people present at an event and the saved contacts (see the README, "Known limitations").
 
 ## 8. Scripted demonstrations
 
