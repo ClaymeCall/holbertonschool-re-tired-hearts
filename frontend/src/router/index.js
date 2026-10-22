@@ -11,6 +11,8 @@ import EventPeopleView from '../views/EventPeopleView.vue'
 import PersonView from '../views/PersonView.vue'
 import ContactsView from '../views/ContactsView.vue'
 import MembersView from '../views/MembersView.vue'
+import PrivacyView from '../views/PrivacyView.vue'
+import ModerationView from '../views/ModerationView.vue'
 import { useSessionStore } from '../stores/session'
 import { applyPageMeta } from './meta'
 
@@ -28,6 +30,12 @@ const routes = [
     component: RegisterView,
     meta: { title: 'Inscription', description: 'Créez votre compte pour rejoindre des sorties entre seniors près de chez vous.', guestOnly: true },
   },
+  {
+    path: '/privacy',
+    name: 'privacy',
+    component: PrivacyView,
+    meta: { title: 'Mentions légales et confidentialité', description: 'Qui édite Re-Tired Hearts, ce que les autres membres voient de vous et ce que nous conservons.' },
+  },
   { path: '/profile', name: 'profile', component: ProfileView, meta: { title: 'Mon profil', requiresAuth: true, noindex: true } },
 ]
 
@@ -43,6 +51,7 @@ routes.push(
   { path: '/members', name: 'members', component: MembersView, meta: privateMeta('Les membres') },
   { path: '/contacts', name: 'contacts', component: ContactsView, meta: privateMeta('Mes contacts') },
   { path: '/my-events', name: 'my-events', component: MyEventsView, meta: privateMeta('Mes sorties') },
+  { path: '/moderation', name: 'moderation', component: ModerationView, meta: { ...privateMeta('Modération'), requiresModerator: true, hideTextZoom: true } },
 )
 
 const router = createRouter({
@@ -59,6 +68,8 @@ router.beforeEach(async (to) => {
   // Une fois connecté, l'accueil de présentation laisse place à la liste des sorties.
   if (to.name === 'home' && session.isAuthenticated) return { name: 'events' }
   if (to.meta.requiresAuth && !session.isAuthenticated) return { name: 'login' }
+  // Réservé aux modérateurs ; l'API refuse de toute façon les autres (403).
+  if (to.meta.requiresModerator && !session.user?.isAdmin) return { name: 'events' }
 })
 
 router.afterEach(applyPageMeta)

@@ -69,6 +69,7 @@ const solid = `inline-flex min-h-14 w-full items-center rounded-full bg-brand px
             Contacts
             <UnreadBadge :count="unread.total" />
           </router-link>
+          <router-link v-if="session.user?.isAdmin" :to="{ name: 'moderation' }" :class="ghost">Modération</router-link>
           <router-link :to="{ name: 'profile' }" :class="ghost">Mon profil</router-link>
           <button type="button" :class="solid" @click="logout">Se déconnecter</button>
         </template>
