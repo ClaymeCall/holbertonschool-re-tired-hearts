@@ -11,7 +11,7 @@ import { listInterests } from '../services/events'
 import { searchPeople } from '../services/people'
 import { totalPagesFor } from '../utils/pagination'
 
-const PAGE_SIZE = 12
+const PAGE_SIZE = 12 // 3 rangées de 4 cartes
 
 const filters = reactive({ search: '', interest: '' })
 const interests = ref([])
@@ -62,7 +62,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+  <section class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
     <h1 class="text-4xl font-extrabold tracking-tight text-ink">Les membres</h1>
     <p class="mt-2 text-xl text-muted">Trouvez des personnes par leur prénom, leur ville ou leurs centres d’intérêt.</p>
 
@@ -87,7 +87,7 @@ onMounted(async () => {
 
       <template v-else>
         <p ref="top" class="mb-4 text-lg font-semibold text-muted" aria-live="polite">{{ people.length }} {{ people.length > 1 ? 'membres' : 'membre' }}</p>
-        <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           <li v-for="person in visible" :key="person.id">
             <article class="flex h-full flex-col overflow-hidden rounded-lg border border-line bg-white">
               <PersonPortrait :name="person.displayName" :person-id="person.id" :photo-url="person.photoUrl" class="h-44" />

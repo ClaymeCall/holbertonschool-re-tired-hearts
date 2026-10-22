@@ -90,7 +90,7 @@ onMounted(async () => {
 
       <template v-else>
         <p ref="top" class="mb-4 text-lg font-semibold text-muted" aria-live="polite">{{ total }} {{ total > 1 ? 'sorties' : 'sortie' }}</p>
-        <ul class="grid gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+        <ul class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           <li v-for="event in events" :key="event.id" class="h-[20rem]">
             <EventCard :event="event" @select="selected = event" />
           </li>
