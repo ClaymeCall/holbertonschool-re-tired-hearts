@@ -11,7 +11,6 @@ const props = defineProps({
   personId: { type: Number, required: true },
   personName: { type: String, required: true },
   acceptsMessages: { type: Boolean, default: true },
-  canMessage: { type: Boolean, default: true },
 })
 
 const MAX_LENGTH = 1000
@@ -32,7 +31,6 @@ const tooLong = computed(() => length.value > MAX_LENGTH)
 // Si l'un des deux a désactivé les messages, l'envoi est impossible (l'historique reste lisible).
 const blockedReason = computed(() => {
   if (!myMessagingEnabled.value) return 'own'
-  if (!props.canMessage) return 'no-link'
   if (!props.acceptsMessages) return 'other'
   return ''
 })
@@ -69,7 +67,7 @@ async function refresh({ first = false } = {}) {
 }
 
 function messageFor(failure) {
-  if (failure.status === 403) return `Message non envoyé : ${props.personName} n’accepte pas de messages pour le moment, ou vous avez désactivé les vôtres.`
+  if (failure.status === 403) return `Message non envoyé : ${props.personName} n’accepte pas de messages pour le moment, vous avez désactivé les vôtres, ou vous n’avez pas encore participé à une même sortie.`
   if (failure.status === 400) return 'Votre message doit contenir entre 1 et 1000 caractères.'
   if (failure.status === 404) return 'Vous ne pouvez pas écrire à cette personne.'
   return 'Message non envoyé. Réessayez dans un instant.'
@@ -93,7 +91,7 @@ async function send() {
 usePolling(() => refresh(), REFRESH_MS)
 onMounted(async () => {
   try {
-    myMessagingEnabled.value = (await getMyProfile()).messaging_enabled !== false
+    myMessagingEnabled.value = (await getMyProfile()).messagingEnabled !== false
   } catch {
     // Sans réponse, on laisse le serveur refuser l'envoi si besoin.
   }
@@ -131,10 +129,7 @@ onMounted(async () => {
       <form class="space-y-3 border-t border-mist-deep p-5" novalidate @submit.prevent="send">
         <div aria-live="polite"><AlertMessage v-if="sendError">{{ sendError }}</AlertMessage></div>
         <p v-if="blockedReason" id="chat-blocked" role="status" class="rounded-lg border-2 border-line bg-mist p-4 text-lg font-semibold text-ink">
-          <template v-if="blockedReason === 'no-link'">
-            Vous pourrez écrire à cette personne après avoir participé à une même sortie, ou si elle organise une sortie.
-          </template>
-          <template v-else-if="blockedReason === 'other'">Cette personne n’accepte pas les messages pour le moment.</template>
+          <template v-if="blockedReason === 'other'">Cette personne n’accepte pas les messages pour le moment.</template>
           <template v-else>
             Vous avez désactivé les messages : personne ne peut vous écrire, et vous ne pouvez pas écrire non plus.
             <router-link :to="{ name: 'profile' }" class="font-bold text-brand underline">Les réactiver dans mon profil</router-link>
