@@ -48,7 +48,6 @@ describe('EventsView', () => {
     await mountView()
     expect(wrapper.findAll('article')).toHaveLength(2)
     expect(wrapper.text()).toContain('2 sorties')
-    expect(wrapper.text()).toContain('Vous avez tout vu')
   })
 
   it('affiche un message quand aucune sortie ne correspond', async () => {
@@ -75,51 +74,44 @@ describe('EventsView', () => {
     expect(service.listEvents).toHaveBeenLastCalledWith({ interest: '1', location: 'Lyon', page: 1, limit: 12 })
   })
 
-  it('ne garde dans la page que les cartes proches de l\'écran', async () => {
+  it('charge une page de 12 sorties et propose des pages numérotées', async () => {
     service.listEvents.mockImplementation(async ({ page }) => ({
       items: Array.from({ length: 12 }, (_, i) => event((page - 1) * 12 + i + 1)),
-      total: 200,
+      total: 30,
       page,
       limit: 12,
     }))
     await mountView()
-    expect(wrapper.text()).toContain('200 sorties')
-    expect(wrapper.findAll('li').length).toBeLessThanOrEqual(15)
-    expect(wrapper.get('li').attributes('aria-setsize')).toBe('200')
-    expect(wrapper.get('li').attributes('aria-posinset')).toBe('1')
+    expect(service.listEvents).toHaveBeenCalledWith(expect.objectContaining({ page: 1, limit: 12 }))
+    expect(wrapper.findAll('article')).toHaveLength(12)
+    expect(wrapper.text()).toContain('Page 1 sur 3 · 30 sorties')
+    await wrapper.get('button[aria-label="Page 3"]').trigger('click')
+    await flushPromises()
+    expect(service.listEvents).toHaveBeenLastCalledWith(expect.objectContaining({ page: 3 }))
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('3')
+    expect(wrapper.text()).toContain('Sortie 25')
   })
 
-  it('charge à la demande les pages atteintes en descendant et retire les anciennes cartes', async () => {
-    service.listEvents.mockImplementation(async ({ page }) => ({
-      items: Array.from({ length: 12 }, (_, i) => event((page - 1) * 12 + i + 1)),
-      total: 200,
-      page,
-      limit: 12,
-    }))
+  it('revient à la page 1 quand on applique un filtre', async () => {
+    service.listEvents.mockImplementation(async ({ page }) => ({ items: [event(page)], total: 30, page, limit: 12 }))
     await mountView()
-    const list = wrapper.get('ul').element
-    list.getBoundingClientRect = () => ({ top: -10500 }) // environ la sortie n°100
-    window.dispatchEvent(new Event('scroll'))
-    await new Promise((resolve) => setTimeout(resolve, 60))
+    await wrapper.get('button[aria-label="Page 2"]').trigger('click')
     await flushPromises()
-    expect(service.listEvents).toHaveBeenCalledWith(expect.objectContaining({ page: 9 }))
-    const posinsets = wrapper.findAll('li').map((li) => Number(li.attributes('aria-posinset')))
-    expect(posinsets.length).toBeLessThanOrEqual(18)
-    expect(Math.min(...posinsets)).toBeGreaterThan(80)
-    expect(wrapper.text()).toContain('Sortie 97')
+    await wrapper.get('#filter-location').setValue('Lyon')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(service.listEvents).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1, location: 'Lyon' }))
   })
 
-  it('propose de réessayer si des pages ne se chargent pas', async () => {
-    service.listEvents
-      .mockResolvedValueOnce({ items: Array.from({ length: 12 }, (_, i) => event(i + 1)), total: 50, page: 1, limit: 12 })
-      .mockRejectedValue(new Error('x'))
+  it('ouvre une modale d\'aperçu avec un lien vers la sortie, et la ferme', async () => {
     await mountView()
-    wrapper.get('ul').element.getBoundingClientRect = () => ({ top: -3000 })
-    window.dispatchEvent(new Event('scroll'))
-    await new Promise((resolve) => setTimeout(resolve, 60))
-    await flushPromises()
-    expect(wrapper.get('[role="alert"]').text()).toContain('une partie des sorties')
-    expect(button('Réessayer')).toBeTruthy()
+    await wrapper.findAll('article button')[1].trigger('click')
+    const dialog = wrapper.get('[role="dialog"]')
+    expect(dialog.text()).toContain('Sortie 2')
+    expect(dialog.text()).toContain('places restantes')
+    expect(dialog.findAll('a').find((a) => a.text().includes('Voir la sortie')).attributes('href')).toBe('/events/2')
+    await dialog.get('[data-close]').trigger('click')
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
   })
 
   it('affiche la photo générique quand une sortie n\'a pas de centre d\'intérêt', async () => {
