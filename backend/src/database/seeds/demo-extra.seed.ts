@@ -26,19 +26,19 @@ interface ExtraEvent {
 // 12 published events in several cities and interests (the front end shows 12 per page: with the
 // seeded hike, this makes a second page), plus one event that is already full (capacity 2, 2 registered).
 const EXTRA_EVENTS: ExtraEvent[] = [
-  { organizer: 'emma', interest: 'Gardening', title: 'Atelier jardinage au potager partagé', description: 'Semis d’automne et échange de graines, tout le matériel est fourni.', city: 'Lyon', inDays: 7, capacity: 10, registered: ['alice', 'farid'] },
-  { organizer: 'emma', interest: 'Cinema and theatre', title: 'Séance de cinéma suivie d’un café', description: 'Un classique en version restaurée, puis une discussion autour d’un café.', city: 'Lyon', inDays: 10, capacity: 15, registered: ['alice', 'bob'] },
-  { organizer: 'emma', interest: 'Board games and cards', title: 'Tournoi de belote du dimanche', description: 'Une après-midi conviviale, débutants bienvenus.', city: 'Villeurbanne', inDays: 5, capacity: 8, registered: ['bob', 'farid'] },
-  { organizer: 'alice', interest: 'Photography', title: 'Balade photo au bord du Rhône', description: 'Une promenade tranquille pour photographier les quais, avec ou sans appareil.', city: 'Lyon', inDays: 12, capacity: 12, registered: ['bob', 'emma'] },
-  { organizer: 'alice', interest: 'Cooking', title: 'Cours de cuisine : les quenelles', description: 'On prépare ensemble, puis on déguste.', city: 'Lyon', inDays: 9, capacity: 6, registered: ['emma', 'farid'] },
-  { organizer: 'bob', interest: 'Music and singing', title: 'Chorale d’automne', description: 'Répétition ouverte à tous, aucune connaissance musicale requise.', city: 'Lyon', inDays: 14, capacity: 20, registered: ['alice'] },
-  { organizer: 'bob', interest: 'Arts and crafts', title: 'Atelier loisirs créatifs', description: 'Cartes, collages et petits objets à rapporter chez soi.', city: 'Lyon', inDays: 16, capacity: 10, registered: ['emma'] },
-  { organizer: 'emma', interest: 'Reading and book clubs', title: 'Club de lecture : romans policiers', description: 'On échange sur le livre du mois autour d’un thé.', city: 'Paris', inDays: 8, capacity: 12, registered: [] },
-  { organizer: 'alice', interest: 'Dancing', title: 'Après-midi dansante', description: 'Valses, tangos et danses en ligne, avec un animateur.', city: 'Lyon', inDays: 20, capacity: 30, registered: ['bob'] },
-  { organizer: 'farid', interest: 'Volunteering', title: 'Sortie bénévole : distribution de repas', description: 'Aider une association locale, par petits groupes.', city: 'Lyon', inDays: 11, capacity: 8, registered: ['emma'] },
-  { organizer: 'emma', interest: 'Travel and discovery', title: 'Conférence : découvrir l’Italie', description: 'Diaporama et conseils de voyage, questions bienvenues.', city: 'Toulouse', inDays: 18, capacity: 25, registered: [] },
-  { organizer: 'bob', interest: 'Walking and hiking', title: 'Randonnée dans les Monts d’Or', description: 'Environ 8 km, rythme tranquille, pique-nique partagé.', city: 'Lyon', inDays: 21, capacity: 14, registered: ['farid', 'alice'] },
-  { organizer: 'emma', interest: 'Cooking', title: 'Dégustation de fromages (complet)', description: 'Une petite table de dégustation : toutes les places sont prises.', city: 'Lyon', inDays: 6, capacity: 2, registered: ['bob', 'farid'] },
+  { organizer: 'emma', interest: 'Jardinage', title: 'Atelier jardinage au potager partagé', description: 'Semis d’automne et échange de graines, tout le matériel est fourni.', city: 'Lyon', inDays: 7, capacity: 10, registered: ['alice', 'farid'] },
+  { organizer: 'emma', interest: 'Cinéma et théâtre', title: 'Séance de cinéma suivie d’un café', description: 'Un classique en version restaurée, puis une discussion autour d’un café.', city: 'Lyon', inDays: 10, capacity: 15, registered: ['alice', 'bob'] },
+  { organizer: 'emma', interest: 'Jeux de société et de cartes', title: 'Tournoi de belote du dimanche', description: 'Une après-midi conviviale, débutants bienvenus.', city: 'Villeurbanne', inDays: 5, capacity: 8, registered: ['bob', 'farid'] },
+  { organizer: 'alice', interest: 'Photographie', title: 'Balade photo au bord du Rhône', description: 'Une promenade tranquille pour photographier les quais, avec ou sans appareil.', city: 'Lyon', inDays: 12, capacity: 12, registered: ['bob', 'emma'] },
+  { organizer: 'alice', interest: 'Cuisine', title: 'Cours de cuisine : les quenelles', description: 'On prépare ensemble, puis on déguste.', city: 'Lyon', inDays: 9, capacity: 6, registered: ['emma', 'farid'] },
+  { organizer: 'bob', interest: 'Musique et chant', title: 'Chorale d’automne', description: 'Répétition ouverte à tous, aucune connaissance musicale requise.', city: 'Lyon', inDays: 14, capacity: 20, registered: ['alice'] },
+  { organizer: 'bob', interest: 'Arts et loisirs créatifs', title: 'Atelier loisirs créatifs', description: 'Cartes, collages et petits objets à rapporter chez soi.', city: 'Lyon', inDays: 16, capacity: 10, registered: ['emma'] },
+  { organizer: 'emma', interest: 'Lecture et clubs de lecture', title: 'Club de lecture : romans policiers', description: 'On échange sur le livre du mois autour d’un thé.', city: 'Paris', inDays: 8, capacity: 12, registered: [] },
+  { organizer: 'alice', interest: 'Danse', title: 'Après-midi dansante', description: 'Valses, tangos et danses en ligne, avec un animateur.', city: 'Lyon', inDays: 20, capacity: 30, registered: ['bob'] },
+  { organizer: 'farid', interest: 'Bénévolat', title: 'Sortie bénévole : distribution de repas', description: 'Aider une association locale, par petits groupes.', city: 'Lyon', inDays: 11, capacity: 8, registered: ['emma'] },
+  { organizer: 'emma', interest: 'Voyages et découvertes', title: 'Conférence : découvrir l’Italie', description: 'Diaporama et conseils de voyage, questions bienvenues.', city: 'Toulouse', inDays: 18, capacity: 25, registered: [] },
+  { organizer: 'bob', interest: 'Randonnée et marche', title: 'Randonnée dans les Monts d’Or', description: 'Environ 8 km, rythme tranquille, pique-nique partagé.', city: 'Lyon', inDays: 21, capacity: 14, registered: ['farid', 'alice'] },
+  { organizer: 'emma', interest: 'Cuisine', title: 'Dégustation de fromages (complet)', description: 'Une petite table de dégustation : toutes les places sont prises.', city: 'Lyon', inDays: 6, capacity: 2, registered: ['bob', 'farid'] },
 ];
 
 export async function seedDemoExtras(dataSource: DataSource, users: SeedUsers): Promise<void> {
@@ -122,6 +122,6 @@ async function seedExtraModerationActions(dataSource: DataSource, users: SeedUse
     targetType: 'profile',
     targetId: await profileId(users.hugo.id),
     action: 'block_profile',
-    reason: 'Seed demo account: blocked to demonstrate the blocked state and the unblock action.',
+    reason: 'Compte de démonstration : bloqué pour montrer l’état bloqué et le déblocage.',
   });
 }

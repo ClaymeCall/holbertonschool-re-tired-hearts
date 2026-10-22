@@ -83,7 +83,7 @@ quiet() {
   fi
 }
 
-# First "id":N of the last response whose object starts with the given text, e.g. '"title":"Sunday'.
+# First "id":N of the last response whose object starts with the given text, e.g. '"title":"Randonnée'.
 id_before() { grep -o "\"id\":[0-9]*,$1" <<<"$LAST_BODY" | head -n1 | sed 's/"id":\([0-9]*\),.*/\1/'; }
 
 section "Setup: a new member (Eva), approved by the moderator, who shares Alice's event with Bob"
@@ -98,7 +98,7 @@ call GET /conversations "$EVA_COOKIES" 403
 quiet POST /auth/login "$MODERATOR_COOKIES" 200 "{\"email\":\"$MODERATOR_EMAIL\",\"password\":\"$MODERATOR_PASSWORD\"}"
 quiet POST "/moderation/profiles/$EVA_PROFILE/approve" "$MODERATOR_COOKIES" 200 '{"reason":"demo"}'
 quiet GET "/events?location=Lyon&limit=50" "$EVA_COOKIES" 200
-EVENT_ID=$(id_before '"title":"Sunday hike')
+EVENT_ID=$(id_before '"title":"Randonnée dominicale')
 quiet POST "/events/$EVENT_ID/registrations" "$EVA_COOKIES" 201
 quiet POST /auth/login "$BOB_COOKIES" 200 "{\"email\":\"$BOB_EMAIL\",\"password\":\"$MEMBER_PASSWORD\"}"
 quiet GET /profiles "$BOB_COOKIES" 200
