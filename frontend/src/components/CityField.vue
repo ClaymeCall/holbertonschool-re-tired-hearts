@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { searchPlaces } from '../services/places'
 
 const props = defineProps({
@@ -9,6 +9,7 @@ const props = defineProps({
   error: { type: String, default: '' },
   hint: { type: String, default: '' },
   autocomplete: { type: String, default: 'off' }, // nos suggestions remplacent celles du navigateur
+  compact: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -24,8 +25,14 @@ let lastRequest = 0
 
 const listId = `${props.id}-listbox`
 const optionId = (index) => `${props.id}-option-${index}`
-const fieldClasses =
-  'mt-1 block min-h-14 w-full rounded-xl border-2 border-line bg-white px-4 py-2.5 text-lg text-ink placeholder:text-muted aria-[invalid=true]:border-danger focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2'
+const ring = 'placeholder:text-muted aria-[invalid=true]:border-danger focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2'
+const fieldClasses = computed(() =>
+  props.compact
+    ? `mt-1 block min-h-11 w-full rounded-lg border-2 border-line bg-white px-3 py-2 text-base text-ink ${ring}`
+    : `mt-1 block min-h-14 w-full rounded-xl border-2 border-line bg-white px-4 py-2.5 text-lg text-ink ${ring}`,
+)
+const labelClasses = computed(() => (props.compact ? 'block text-sm font-bold text-ink' : 'block text-lg font-semibold text-ink'))
+const textClasses = computed(() => (props.compact ? 'text-sm' : 'text-base'))
 
 function close() {
   clearTimeout(timer)
@@ -94,8 +101,8 @@ onBeforeUnmount(() => clearTimeout(timer))
 
 <template>
   <div class="relative">
-    <label :for="id" class="block text-lg font-semibold text-ink">{{ label }}</label>
-    <p v-if="hint" :id="`${id}-hint`" class="mt-1 text-base text-muted">{{ hint }}</p>
+    <label :for="id" :class="labelClasses">{{ label }}</label>
+    <p v-if="hint && !compact" :id="`${id}-hint`" :class="[textClasses, 'mt-0.5 text-muted']">{{ hint }}</p>
     <input
       :id="id"
       type="text"
@@ -126,7 +133,7 @@ onBeforeUnmount(() => clearTimeout(timer))
         :key="`${suggestion.name}-${suggestion.postalCode}`"
         role="option"
         :aria-selected="active === index ? 'true' : 'false'"
-        class="cursor-pointer px-4 py-3 text-lg text-ink"
+        class="cursor-pointer px-3 py-2 text-base text-ink"
         :class="active === index ? 'bg-mist font-bold' : 'hover:bg-mist'"
         @mousedown.prevent
         @click="choose(suggestion)"
@@ -134,8 +141,9 @@ onBeforeUnmount(() => clearTimeout(timer))
         {{ suggestion.name }}<span v-if="suggestion.postalCode" class="text-muted"> ({{ suggestion.postalCode }})</span>
       </li>
     </ul>
+    <p v-if="hint && compact" :id="`${id}-hint`" :class="[textClasses, 'mt-0.5 text-muted']">{{ hint }}</p>
     <p class="sr-only" role="status" aria-live="polite">{{ open ? `${suggestions.length} suggestions disponibles` : '' }}</p>
-    <p v-if="unavailable" :id="`${id}-status`" class="mt-2 text-base text-muted">Les suggestions de villes sont indisponibles : saisissez votre ville à la main.</p>
-    <p v-if="error" :id="`${id}-error`" class="mt-2 text-base font-semibold text-danger">{{ error }}</p>
+    <p v-if="unavailable" :id="`${id}-status`" :class="[textClasses, 'mt-1 text-muted']">Les suggestions de villes sont indisponibles : saisissez votre ville à la main.</p>
+    <p v-if="error" :id="`${id}-error`" class="mt-1 text-sm font-semibold text-danger">{{ error }}</p>
   </div>
 </template>

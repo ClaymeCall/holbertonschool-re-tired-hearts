@@ -15,6 +15,7 @@ async function mountView(path) {
     history: createMemoryHistory(),
     routes: [
       { path: '/events', name: 'events', component: { template: '<div />' } },
+      { path: '/my-events', name: 'my-events', component: { template: '<div />' } },
       { path: '/events/new', name: 'event-new', component: EventFormView },
       { path: '/events/:id', name: 'event-detail', component: { template: '<div />' } },
       { path: '/events/:id/edit', name: 'event-edit', component: EventFormView },
@@ -59,6 +60,20 @@ describe('EventFormView', () => {
     await flushPromises()
     expect(service.createEvent).toHaveBeenCalledWith(expect.objectContaining({ title: 'Marche douce', mainInterestId: 1, capacity: 12 }))
     expect(router.currentRoute.value.name).toBe('event-detail')
+  })
+
+  it('tient en une seule page avec un aperçu de la carte qui suit la saisie', async () => {
+    await mountView('/events/new')
+    const preview = wrapper.get('aside[aria-label="Aperçu de la sortie"]')
+    expect(preview.text()).toContain('Titre de la sortie')
+    await wrapper.get('#title').setValue('Marche douce')
+    await wrapper.get('#approximateLocation').setValue('Annecy')
+    expect(preview.text()).toContain('Marche douce')
+    expect(preview.text()).toContain('Annecy')
+    // tous les champs sont dans le même formulaire, sans étapes
+    for (const id of ['title', 'mainInterestId', 'approximateLocation', 'startsAt', 'capacity', 'description']) {
+      expect(wrapper.get('form').find(`#${id}`).exists()).toBe(true)
+    }
   })
 
   it('refuse une capacité inférieure au nombre d\'inscrits en modification', async () => {
