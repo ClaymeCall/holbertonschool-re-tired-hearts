@@ -21,7 +21,6 @@ import men07 from './men-07.webp'
 import men08 from './men-08.webp'
 import men09 from './men-09.webp'
 import men10 from './men-10.webp'
-import men11 from './men-11.webp'
 
 // Portraits attribués aux membres de la seed (nom affiché sans accents, en minuscules) : chaque membre
 // visible de la démonstration a une photo différente. Les autres profils reçoivent une photo du même genre.
@@ -42,11 +41,11 @@ export const portraitsByName = {
   'gerard lefebvre': men04,
   'jacques moreau': men05,
   'henri vidal': men06,
-  'lucien marchand': men07,
   'michel giraud': men08,
   'bernard roche': men09,
   'pierre mercier': men10,
 }
 
-export const womenPortraits = [women01, women02, women03, women04, women05, women06, women07, women08, women09, women10]
-export const menPortraits = [men01, men02, men03, men04, men05, men06, men07, men08, men09, men10, men11]
+// Photo par défaut : celle de tout membre qui n'a pas choisi de photo (par exemple un compte créé pendant une
+// présentation). Elle n'est pas attribuée à un membre de la seed.
+export const defaultPortrait = men07

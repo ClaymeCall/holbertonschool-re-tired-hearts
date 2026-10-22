@@ -1,60 +1,39 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import PersonPortrait from '../components/PersonPortrait.vue'
-import { guessGender } from '../utils/gender'
-import { menPortraits, womenPortraits } from '../assets/members'
+import { defaultPortrait, portraitsByName } from '../assets/members'
+import { normalizeName } from '../utils/name'
 
-describe('guessGender', () => {
-  it('reconnaît des prénoms courants, sans tenir compte des accents ni de la casse', () => {
-    expect(guessGender('Colette')).toBe('feminine')
-    expect(guessGender('Gérard Dupont')).toBe('masculine')
-    expect(guessGender('JEAN-PAUL')).toBe('masculine')
-    expect(guessGender('Françoise')).toBe('feminine')
-  })
+const mountWith = (props) => mount(PersonPortrait, { props })
+const srcOf = (props) => mountWith(props).get('img').attributes('src')
 
-  it('ne devine jamais : prénom inconnu, mixte ou absent', () => {
-    expect(guessGender('Camille')).toBeNull()
-    expect(guessGender('Dominique')).toBeNull()
-    expect(guessGender('Xyz')).toBeNull()
-    expect(guessGender('')).toBeNull()
-    expect(guessGender(undefined)).toBeNull()
+describe('normalizeName', () => {
+  it('ignore les accents, la casse et les espaces en trop', () => {
+    expect(normalizeName('  Gérard   LEFEBVRE ')).toBe('gerard lefebvre')
+    expect(normalizeName(undefined)).toBe('')
   })
 })
 
 describe('PersonPortrait', () => {
-  const mountWith = (props) => mount(PersonPortrait, { props })
-
-  it('donne une photo de femme à un prénom féminin et une photo d\'homme à un prénom masculin', () => {
-    expect(womenPortraits).toContain(mountWith({ name: 'Colette', personId: 3 }).get('img').attributes('src'))
-    expect(menPortraits).toContain(mountWith({ name: 'Henri', personId: 3 }).get('img').attributes('src'))
+  it('attribue un portrait différent à chaque membre de la démonstration', () => {
+    const names = Object.keys(portraitsByName)
+    const sources = names.map((name, i) => srcOf({ name, personId: i + 1 }))
+    expect(new Set(sources).size).toBe(names.length)
+    expect(sources).not.toContain(defaultPortrait)
   })
 
-  it('attribue un portrait différent à chaque membre visible de la démonstration', () => {
-    const names = ['Alice Moreau', 'Emma Bernard', 'Colette Dubois', 'Françoise Garnier', 'Monique Fontaine', 'Odile Perrin', 'Josette Faure', 'Nicole André', 'Christiane Blanc', 'Denise Lemoine']
-    const women = names.map((name, i) => mountWith({ name, personId: i + 1 }).get('img').attributes('src'))
-    expect(new Set(women).size).toBe(names.length)
-    expect(women.every((src) => womenPortraits.includes(src))).toBe(true)
-    const menNames = ['Bob Laurent', 'Dave Robert', 'Farid Haddad', 'Gérard Lefebvre', 'Jacques Moreau', 'Henri Vidal', 'Lucien Marchand', 'Michel Giraud', 'Bernard Roche', 'Pierre Mercier']
-    const men = menNames.map((name, i) => mountWith({ name, personId: i + 1 }).get('img').attributes('src'))
-    expect(new Set(men).size).toBe(menNames.length)
-    expect(men.every((src) => menPortraits.includes(src))).toBe(true)
+  it('donne automatiquement la photo par défaut à un membre sans photo, par exemple un compte créé en présentation', () => {
+    expect(srcOf({ name: 'Nouvelle Personne', personId: 999 })).toBe(defaultPortrait)
+    expect(srcOf({ name: 'Camille Durand', personId: 1000 })).toBe(defaultPortrait)
   })
 
-  it('garde la même photo pour un même profil', () => {
-    const a = mountWith({ name: 'Marie', personId: 7 }).get('img').attributes('src')
-    const b = mountWith({ name: 'Marie', personId: 7 }).get('img').attributes('src')
-    expect(a).toBe(b)
-  })
-
-  it('n\'affiche que l\'initiale quand le prénom est inconnu ou ambigu', () => {
-    const wrapper = mountWith({ name: 'Camille Durand', personId: 1 })
-    expect(wrapper.find('img').exists()).toBe(false)
-    expect(wrapper.text()).toBe('C')
+  it('reconnaît un membre de la démonstration quelle que soit la façon d\'écrire son nom', () => {
+    expect(srcOf({ name: 'FRANÇOISE garnier', personId: 3 })).toBe(portraitsByName['francoise garnier'])
   })
 
   it('affiche la vraie photo dès que le profil en a une', () => {
-    const wrapper = mountWith({ name: 'Colette', personId: 3, photoUrl: '/photos/colette.jpg' })
+    const wrapper = mountWith({ name: 'Colette Dubois', personId: 3, photoUrl: '/photos/colette.jpg' })
     expect(wrapper.get('img').attributes('src')).toBe('/photos/colette.jpg')
-    expect(wrapper.get('img').attributes('alt')).toBe('Photo de Colette')
+    expect(wrapper.get('img').attributes('alt')).toBe('Photo de Colette Dubois')
   })
 })
