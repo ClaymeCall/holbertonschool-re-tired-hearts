@@ -11,7 +11,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="mx-auto grid max-w-6xl gap-6 px-4 py-4 sm:px-6 lg:grid-cols-12 lg:items-stretch lg:py-3">
+  <div class="mx-auto grid max-w-6xl gap-6 px-4 py-4 sm:px-6 lg:my-auto lg:grid-cols-12 lg:items-stretch lg:py-3">
     <aside class="relative hidden overflow-hidden rounded-3xl bg-ink lg:col-span-5 lg:block">
       <PhotoImage :photo="photo" sizes="480px" :class="photoPosition" class="absolute inset-0 h-full w-full object-cover" />
       <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink via-ink/80 to-transparent p-8 pt-24">

@@ -15,7 +15,7 @@ const route = useRoute()
       Aller au contenu principal
     </a>
     <AppHeader />
-    <main id="main" class="flex-1">
+    <main id="main" class="flex flex-1 flex-col [&>*]:w-full">
       <router-view />
     </main>
     <!-- La page de modération est pour les modérateurs, pas pour le public senior : pas de bouton d'agrandissement. -->
