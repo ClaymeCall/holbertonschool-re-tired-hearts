@@ -32,11 +32,59 @@ describe('MembersView', () => {
   })
   afterEach(() => wrapper?.unmount())
 
-  it('liste les membres avec un lien vers leur profil', async () => {
+  it('affiche une carte par membre avec son nom, sa ville et ses centres d\'intérêt', async () => {
     await mountView()
     expect(wrapper.text()).toContain('2 membres')
-    const links = wrapper.findAll('a').filter((a) => a.text().startsWith('Voir le profil'))
-    expect(links.map((a) => a.attributes('href'))).toEqual(['/people/2?from=members', '/people/103?from=members'])
+    expect(wrapper.findAll('article')).toHaveLength(2)
+    expect(wrapper.text()).toContain('Colette')
+    expect(wrapper.text()).toContain('Randonnée')
+  })
+
+  it('ouvre une modale avec le portrait et le profil du membre choisi, puis la ferme', async () => {
+    await mountView()
+    const open = wrapper.findAll('button').filter((b) => b.text().startsWith('Voir le profil'))
+    await open[1].trigger('click')
+    const dialog = wrapper.get('[role="dialog"]')
+    expect(dialog.text()).toContain('Henri')
+    expect(dialog.find('img').exists()).toBe(true)
+    const link = dialog.findAll('a').find((a) => a.text().includes('Voir la page'))
+    expect(link.attributes('href')).toBe('/people/103?from=members')
+    await dialog.find('[data-close]').trigger('click')
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+  })
+
+  it('ferme la modale avec Échap', async () => {
+    await mountView()
+    await wrapper.findAll('button').find((b) => b.text().startsWith('Voir le profil')).trigger('click')
+    await wrapper.get('[role="dialog"]').trigger('keydown', { key: 'Escape' })
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+  })
+
+  it('pagine par 12 : numéros de page, précédent et suivant', async () => {
+    people.searchPeople.mockResolvedValue(Array.from({ length: 30 }, (_, i) => member(i + 1, `Membre ${i + 1}`)))
+    await mountView()
+    expect(wrapper.findAll('article')).toHaveLength(12)
+    expect(wrapper.text()).toContain('Page 1 sur 3 · 30 membres')
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('1')
+    await wrapper.get('button[aria-label="Page 3"]').trigger('click')
+    expect(wrapper.findAll('article')).toHaveLength(6)
+    expect(wrapper.text()).toContain('Membre 25')
+    expect(wrapper.text()).not.toContain('Membre 1 ')
+    await wrapper.findAll('button').find((b) => b.text().includes('Précédent')).trigger('click')
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('2')
+    expect(wrapper.findAll('button').find((b) => b.text().includes('Suivant')).attributes('disabled')).toBeUndefined()
+  })
+
+  it('n\'affiche pas de pagination pour une seule page et revient page 1 après une recherche', async () => {
+    await mountView()
+    expect(wrapper.find('nav[aria-label="Pagination"]').exists()).toBe(false)
+    people.searchPeople.mockResolvedValue(Array.from({ length: 30 }, (_, i) => member(i + 1, `Membre ${i + 1}`)))
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    await wrapper.get('button[aria-label="Page 2"]').trigger('click')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('1')
   })
 
   it('lance la recherche avec le prénom ou la ville et le centre d\'intérêt', async () => {

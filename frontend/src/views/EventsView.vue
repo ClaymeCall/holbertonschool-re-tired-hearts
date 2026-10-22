@@ -1,133 +1,62 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
+import BaseModal from '../components/BaseModal.vue'
 import EventCard from '../components/EventCard.vue'
 import CityField from '../components/CityField.vue'
 import FormField from '../components/FormField.vue'
+import PaginationBar from '../components/PaginationBar.vue'
 import SelectField from '../components/SelectField.vue'
 import { listEvents, listInterests } from '../services/events'
-import { CARD_REM, GAP_REM, columnsFor, computeWindow } from '../utils/virtualWindow'
+import { formatEventDate, placesLabel } from '../utils/events'
+import { totalPagesFor } from '../utils/pagination'
 
 const LIMIT = 12
 
 const filters = reactive({ interest: '', location: '' })
 const interests = ref([])
+const events = ref([])
 const total = ref(0)
-const pages = reactive({})
+const page = ref(1)
 const loading = ref(true)
 const error = ref('')
-const pageError = ref(false)
-const listEl = ref(null)
-const view = ref({ rows: 0, startRow: 0, endRow: -1, start: 0, end: 0 })
-const columns = ref(columnsFor(window.innerWidth))
+const selected = ref(null)
+const top = ref(null)
 
-let generation = 0
-const inflight = new Set()
-let frame = null
+const totalPages = computed(() => totalPagesFor(total.value, LIMIT))
 
-const rowPx = () => (CARD_REM + GAP_REM) * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16)
-const indexes = computed(() => Array.from({ length: view.value.end - view.value.start }, (_, i) => view.value.start + i))
-const paddingTop = computed(() => `${view.value.startRow * rowPx()}px`)
-const paddingBottom = computed(() => `${Math.max(view.value.rows - 1 - view.value.endRow, 0) * rowPx()}px`)
-const atEnd = computed(() => total.value > 0 && view.value.end >= total.value)
-
-const itemAt = (index) => pages[Math.floor(index / LIMIT) + 1]?.[index % LIMIT] ?? null
-
-async function fetchPage(page) {
-  const current = generation
-  inflight.add(page)
-  try {
-    const result = await listEvents({ interest: filters.interest, location: filters.location, page, limit: LIMIT })
-    if (current !== generation) return
-    pages[page] = result.items
-    total.value = result.total
-  } catch {
-    if (current === generation) pageError.value = true
-  } finally {
-    inflight.delete(page)
-  }
-}
-
-// Charge à la demande les pages de 12 correspondant aux cartes à afficher.
-function ensurePages(from, to) {
-  if (to <= from) return
-  const wanted = []
-  for (let page = Math.floor(from / LIMIT) + 1; page <= Math.floor((to - 1) / LIMIT) + 1; page += 1) {
-    if (!pages[page] && !inflight.has(page)) wanted.push(page)
-  }
-  wanted.forEach(fetchPage)
-}
-
-function updateWindow() {
-  frame = null
-  if (!listEl.value) return
-  columns.value = columnsFor(window.innerWidth)
-  view.value = computeWindow({
-    top: listEl.value.getBoundingClientRect().top,
-    viewportHeight: window.innerHeight,
-    rowHeight: rowPx(),
-    columns: columns.value,
-    total: total.value,
-    bufferCards: 3,
-  })
-  ensurePages(view.value.start, view.value.end)
-}
-
-function scheduleUpdate() {
-  if (frame === null) frame = requestAnimationFrame(updateWindow)
-}
-
-async function load() {
-  generation += 1
-  Object.keys(pages).forEach((key) => delete pages[key])
-  inflight.clear()
-  total.value = 0
-  view.value = { rows: 0, startRow: 0, endRow: -1, start: 0, end: 0 }
+// Pagination côté API : une page de 12 sorties à la fois (page et limit).
+async function load(target = 1) {
   loading.value = true
   error.value = ''
-  pageError.value = false
-  const current = generation
   try {
-    const result = await listEvents({ interest: filters.interest, location: filters.location, page: 1, limit: LIMIT })
-    if (current !== generation) return
-    pages[1] = result.items
+    const result = await listEvents({ interest: filters.interest, location: filters.location, page: target, limit: LIMIT })
+    events.value = result.items
     total.value = result.total
+    page.value = target
   } catch {
-    if (current === generation) error.value = 'Impossible de charger les sorties pour le moment.'
+    error.value = 'Impossible de charger les sorties pour le moment.'
   } finally {
-    if (current === generation) loading.value = false
+    loading.value = false
   }
   await nextTick()
-  updateWindow()
-}
-
-function retryPages() {
-  pageError.value = false
-  updateWindow()
+  if (target > 1) top.value?.scrollIntoView?.({ block: 'start' })
 }
 
 function reset() {
   filters.interest = ''
   filters.location = ''
-  load()
+  load(1)
 }
 
 onMounted(async () => {
-  window.addEventListener('scroll', scheduleUpdate, { passive: true })
-  window.addEventListener('resize', scheduleUpdate)
   try {
     interests.value = (await listInterests()).map((interest) => ({ value: interest.id, label: interest.name }))
   } catch {
     // Le filtre par centre d'intérêt reste simplement indisponible.
   }
-  load()
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', scheduleUpdate)
-  window.removeEventListener('resize', scheduleUpdate)
-  if (frame !== null) cancelAnimationFrame(frame)
+  load(1)
 })
 </script>
 
@@ -138,7 +67,7 @@ onBeforeUnmount(() => {
       <BaseButton :to="{ name: 'event-new' }">Proposer une sortie</BaseButton>
     </div>
 
-    <form class="mt-6 grid gap-4 rounded-3xl border border-mist-deep bg-white p-6 md:grid-cols-[1fr_1fr_auto] md:items-end" @submit.prevent="load">
+    <form class="mt-6 grid gap-4 rounded-3xl border border-mist-deep bg-white p-6 md:grid-cols-[1fr_1fr_auto] md:items-end" @submit.prevent="load(1)">
       <SelectField id="filter-interest" v-model="filters.interest" label="Centre d’intérêt" :options="interests" placeholder="Tous les centres d’intérêt" />
       <CityField id="filter-location" v-model="filters.location" label="Ville ou secteur" />
       <div class="flex gap-3">
@@ -152,7 +81,7 @@ onBeforeUnmount(() => {
 
       <div v-else-if="error">
         <AlertMessage>{{ error }}</AlertMessage>
-        <div class="mt-4"><BaseButton variant="secondary" @click="load">Réessayer</BaseButton></div>
+        <div class="mt-4"><BaseButton variant="secondary" @click="load(page)">Réessayer</BaseButton></div>
       </div>
 
       <div v-else-if="total === 0" class="rounded-3xl bg-mist p-8 text-center">
@@ -161,29 +90,28 @@ onBeforeUnmount(() => {
       </div>
 
       <template v-else>
-        <p class="mb-4 text-lg font-semibold text-muted" aria-live="polite">{{ total }} {{ total > 1 ? 'sorties' : 'sortie' }}</p>
-
-        <div v-if="pageError" class="mb-4 space-y-3">
-          <AlertMessage>Impossible de charger une partie des sorties.</AlertMessage>
-          <BaseButton variant="secondary" @click="retryPages">Réessayer</BaseButton>
-        </div>
-
-        <!-- Seules les cartes proches de l'écran existent dans la page : la liste reste légère. -->
-        <ul
-          ref="listEl"
-          class="grid gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-3"
-          :style="{ paddingTop, paddingBottom }"
-        >
-          <li v-for="index in indexes" :key="index" class="h-[20rem]" :aria-posinset="index + 1" :aria-setsize="total">
-            <EventCard v-if="itemAt(index)" :event="itemAt(index)" />
-            <div v-else class="flex h-full items-center justify-center rounded-3xl bg-mist text-lg font-semibold text-muted" role="status">
-              Chargement…
-            </div>
+        <p ref="top" class="mb-4 text-lg font-semibold text-muted" aria-live="polite">{{ total }} {{ total > 1 ? 'sorties' : 'sortie' }}</p>
+        <ul class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <li v-for="event in events" :key="event.id" class="h-[20rem]">
+            <EventCard :event="event" @select="selected = event" />
           </li>
         </ul>
-
-        <p v-if="atEnd" class="mt-10 text-center text-lg font-bold text-ink">Vous avez tout vu : {{ total }} {{ total > 1 ? 'sorties' : 'sortie' }}.</p>
+        <PaginationBar :page="page" :total-pages="totalPages" :total="total" noun="sorties" @change="load" />
       </template>
     </div>
+    <BaseModal :open="Boolean(selected)" labelledby="event-modal-title" @close="selected = null">
+      <div v-if="selected" class="p-6 sm:p-8">
+        <p v-if="selected.mainInterest?.name" class="text-base font-bold uppercase tracking-wide text-accent">{{ selected.mainInterest.name }}</p>
+        <h2 id="event-modal-title" class="mt-1 text-3xl font-extrabold tracking-tight text-ink">{{ selected.title }}</h2>
+        <p class="mt-2 text-xl font-semibold text-ink first-letter:uppercase">{{ formatEventDate(selected.startsAt) }}</p>
+        <p class="text-lg text-muted">{{ selected.approximateLocation }} · organisée par {{ selected.organizer?.displayName ?? 'un membre' }}</p>
+        <p class="mt-3 text-lg font-medium" :class="selected.registeredCount >= selected.capacity ? 'text-danger' : 'text-success'">{{ placesLabel(selected) }}</p>
+        <p v-if="selected.description" class="mt-4 line-clamp-6 whitespace-pre-line text-lg text-ink">{{ selected.description }}</p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <BaseButton variant="secondary" data-close @click="selected = null">Fermer</BaseButton>
+          <BaseButton :to="{ name: 'event-detail', params: { id: selected.id } }">Voir la sortie et s’inscrire</BaseButton>
+        </div>
+      </div>
+    </BaseModal>
   </section>
 </template>

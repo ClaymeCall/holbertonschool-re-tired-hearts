@@ -4,6 +4,7 @@ import { eventPhotos } from '../assets/events'
 import { eventDateParts, eventKind, formatEventDate, placesLabel } from '../utils/events'
 
 const props = defineProps({ event: { type: Object, required: true } })
+defineEmits(['select'])
 
 const date = computed(() => eventDateParts(props.event.startsAt))
 const photo = computed(() => eventPhotos[eventKind(props.event.mainInterest?.name)])
@@ -35,12 +36,9 @@ const full = computed(() => props.event.registeredCount >= props.event.capacity)
     <div class="flex flex-1 flex-col px-4 pb-3 pt-3">
       <p v-if="event.mainInterest?.name" class="text-base font-bold uppercase tracking-wide text-accent">{{ event.mainInterest.name }}</p>
       <h2 class="mt-0.5 line-clamp-2 text-xl font-extrabold leading-snug tracking-tight text-ink">
-        <router-link
-          :to="{ name: 'event-detail', params: { id: event.id } }"
-          class="after:absolute after:inset-0 focus-visible:outline-none"
-        >
+        <button type="button" class="text-left after:absolute after:inset-0 focus-visible:outline-none" @click="$emit('select')">
           {{ event.title }}
-        </router-link>
+        </button>
       </h2>
       <p class="sr-only">{{ formatEventDate(event.startsAt) }}</p>
       <p class="mt-1 text-lg font-semibold text-ink first-letter:uppercase" aria-hidden="true">{{ date.weekday }} · {{ date.time }}</p>
