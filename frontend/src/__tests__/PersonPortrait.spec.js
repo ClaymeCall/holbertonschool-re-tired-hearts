@@ -29,6 +29,17 @@ describe('PersonPortrait', () => {
     expect(menPortraits).toContain(mountWith({ name: 'Henri', personId: 3 }).get('img').attributes('src'))
   })
 
+  it('attribue un portrait différent à chaque membre visible de la démonstration', () => {
+    const names = ['Alice Moreau', 'Emma Bernard', 'Colette Dubois', 'Françoise Garnier', 'Monique Fontaine', 'Odile Perrin', 'Josette Faure', 'Nicole André', 'Christiane Blanc', 'Denise Lemoine']
+    const women = names.map((name, i) => mountWith({ name, personId: i + 1 }).get('img').attributes('src'))
+    expect(new Set(women).size).toBe(names.length)
+    expect(women.every((src) => womenPortraits.includes(src))).toBe(true)
+    const menNames = ['Bob Laurent', 'Dave Robert', 'Farid Haddad', 'Gérard Lefebvre', 'Jacques Moreau', 'Henri Vidal', 'Lucien Marchand', 'Michel Giraud', 'Bernard Roche', 'Pierre Mercier']
+    const men = menNames.map((name, i) => mountWith({ name, personId: i + 1 }).get('img').attributes('src'))
+    expect(new Set(men).size).toBe(menNames.length)
+    expect(men.every((src) => menPortraits.includes(src))).toBe(true)
+  })
+
   it('garde la même photo pour un même profil', () => {
     const a = mountWith({ name: 'Marie', personId: 7 }).get('img').attributes('src')
     const b = mountWith({ name: 'Marie', personId: 7 }).get('img').attributes('src')

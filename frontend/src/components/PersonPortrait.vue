@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
-import { menPortraits, womenPortraits } from '../assets/members'
-import { guessGender } from '../utils/gender'
+import { menPortraits, portraitsByName, womenPortraits } from '../assets/members'
+import { guessGender, normalizeName } from '../utils/gender'
 
 // Portrait d'un membre. L'API ne fournit pas encore de photo de profil : en attendant, une photo de banque
 // d'images dont le genre correspond au prénom (stable pour un même profil). Prénom inconnu ou ambigu : pas de
@@ -14,6 +14,8 @@ const props = defineProps({
 
 const initial = computed(() => props.name.trim().charAt(0).toUpperCase())
 const stock = computed(() => {
+  const assigned = portraitsByName[normalizeName(props.name)]
+  if (assigned) return assigned
   const gender = guessGender(props.name)
   const list = gender === 'feminine' ? womenPortraits : gender === 'masculine' ? menPortraits : null
   return list ? list[Math.abs(props.personId) % list.length] : null
