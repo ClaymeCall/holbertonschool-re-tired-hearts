@@ -63,7 +63,7 @@ const solid = computed(
 
 <template>
   <header class="sticky top-0 z-20 border-b border-mist-deep bg-paper/95 backdrop-blur" @keydown.esc="menuOpen = false">
-    <div class="relative mx-auto flex max-w-7xl items-center justify-between gap-x-4 px-4 py-2 sm:px-6" :class="layout.container">
+    <div class="relative flex w-full items-center justify-between gap-x-4 px-4 py-2 sm:px-6" :class="layout.container">
       <router-link
         :to="{ name: session.isAuthenticated ? 'events' : 'home' }"
         :aria-label="session.isAuthenticated ? 'Re-Tired Hearts, retour aux sorties' : 'Re-Tired Hearts, retour à l\'accueil'"
