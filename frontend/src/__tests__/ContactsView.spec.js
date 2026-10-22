@@ -52,6 +52,18 @@ describe('ContactsView', () => {
     expect(row('Colette').find('img').exists()).toBe(true)
   })
 
+  it('pagine les contacts par 12 au maximum', async () => {
+    const many = Array.from({ length: 30 }, (_, i) => ({ id: 200 + i, displayName: `Contact ${i + 1}`, approximateLocation: 'Lyon' }))
+    people.listContacts.mockResolvedValue(many)
+    chat.listConversations.mockResolvedValue([])
+    await mountView()
+    const rows = () => wrapper.get('ul.divide-y').findAll(':scope > li')
+    expect(rows()).toHaveLength(12)
+    expect(wrapper.text()).toContain('Page 1 sur 3 · 30 contacts')
+    await wrapper.get('button[aria-label="Page 3"]').trigger('click')
+    expect(rows()).toHaveLength(6)
+  })
+
   it('met une puce rouge avec le nombre de messages non lus sur le contact concerné', async () => {
     await mountView()
     const badge = row('Colette').find('.bg-red-600')

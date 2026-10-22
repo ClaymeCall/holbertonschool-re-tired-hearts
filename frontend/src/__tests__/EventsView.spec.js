@@ -93,6 +93,19 @@ describe('EventsView', () => {
     expect(wrapper.text()).toContain('Sortie 25')
   })
 
+  it('ne charge que la page affichée et ses deux voisines, puis sert les pages déjà chargées sans nouvel appel', async () => {
+    service.listEvents.mockImplementation(async ({ page }) => ({ items: [event(page)], total: 60, page, limit: 12 }))
+    await mountView()
+    // page 1 affichée : la page 2 est préchargée, rien d'autre
+    expect(service.listEvents.mock.calls.map(([args]) => args.page).sort()).toEqual([1, 2])
+    service.listEvents.mockClear()
+    await wrapper.get('button[aria-label="Page 2"]').trigger('click')
+    await flushPromises()
+    // la page 2 vient du cache (pas d'appel) ; on précharge la 3 (la 1 est déjà là)
+    expect(service.listEvents.mock.calls.map(([args]) => args.page)).toEqual([3])
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('2')
+  })
+
   it('revient à la page 1 quand on applique un filtre', async () => {
     service.listEvents.mockImplementation(async ({ page }) => ({ items: [event(page)], total: 30, page, limit: 12 }))
     await mountView()
@@ -101,7 +114,7 @@ describe('EventsView', () => {
     await wrapper.get('#filter-location').setValue('Lyon')
     await wrapper.get('form').trigger('submit')
     await flushPromises()
-    expect(service.listEvents).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1, location: 'Lyon' }))
+    expect(service.listEvents).toHaveBeenCalledWith(expect.objectContaining({ page: 1, location: 'Lyon' }))
   })
 
   it('ouvre une modale d\'aperçu avec un lien vers la sortie, et la ferme', async () => {

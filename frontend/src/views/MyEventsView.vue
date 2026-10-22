@@ -1,9 +1,11 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { usePagedList } from '../composables/usePagedList'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import EventRow from '../components/EventRow.vue'
+import PaginationBar from '../components/PaginationBar.vue'
 import { cancelEvent, deleteEvent, listMyEvents, withdrawFromEvent } from '../services/events'
 
 const registered = ref([])
@@ -24,6 +26,11 @@ const upcoming = computed(() => registered.value.filter((event) => !isPast(event
 // Sorties passées : celles où j'étais inscrit(e) et celles que j'ai organisées, de la plus récente à la plus ancienne.
 const past = computed(() => [...registered.value.filter(held), ...organized.value.filter(held)].sort((a, b) => byDate(b, a)))
 const organizedList = computed(() => organized.value.filter((event) => !held(event)).sort(byDate))
+
+const top = ref(null)
+const pagedUpcoming = usePagedList(upcoming, { anchor: top })
+const pagedOrganized = usePagedList(organizedList, { anchor: top })
+const pagedPast = usePagedList(past, { anchor: top })
 
 const tabs = computed(() => [
   { key: 'upcoming', label: 'Mes inscriptions', count: upcoming.value.length },
@@ -139,16 +146,17 @@ onMounted(load)
       </div>
 
       <!-- Mes inscriptions à venir -->
-      <div v-if="active === 'upcoming'" id="panel-upcoming" role="tabpanel" aria-labelledby="tab-upcoming" class="mt-6 space-y-4">
+      <div v-if="active === 'upcoming'" ref="top" id="panel-upcoming" role="tabpanel" aria-labelledby="tab-upcoming" class="mt-6 space-y-4">
         <p v-if="upcoming.length === 0" class="rounded-lg bg-mist p-6 text-lg text-ink">
           Vous n’êtes inscrit(e) à aucune sortie à venir.
           <router-link :to="{ name: 'events' }" class="font-bold text-brand underline">Voir les sorties</router-link>
         </p>
-        <EventRow v-for="event in upcoming" :key="event.id" :event="event">
+        <EventRow v-for="event in pagedUpcoming.visible.value" :key="event.id" :event="event">
           <template #actions>
             <BaseButton variant="secondary" :loading="working" @click="withdraw(event)">Me désinscrire</BaseButton>
           </template>
         </EventRow>
+        <PaginationBar :page="pagedUpcoming.page.value" :total-pages="pagedUpcoming.totalPages.value" :total="upcoming.length" noun="sorties" @change="pagedUpcoming.goTo" />
       </div>
 
       <!-- Sorties que j'organise -->
@@ -157,23 +165,25 @@ onMounted(load)
           Vous n’organisez aucune sortie.
           <router-link :to="{ name: 'event-new' }" class="font-bold text-brand underline">Proposer une sortie</router-link>
         </p>
-        <EventRow v-for="event in organizedList" :key="event.id" :event="event" show-status>
+        <EventRow v-for="event in pagedOrganized.visible.value" :key="event.id" :event="event" show-status>
           <template #actions>
             <BaseButton v-if="canEdit(event)" variant="secondary" :to="{ name: 'event-edit', params: { id: event.id } }">Modifier</BaseButton>
             <BaseButton v-if="canDelete(event)" variant="secondary" @click="pending = { action: 'delete', event }">Supprimer</BaseButton>
             <BaseButton v-if="canCancel(event)" variant="secondary" @click="pending = { action: 'cancel', event }">Annuler la sortie</BaseButton>
           </template>
         </EventRow>
+        <PaginationBar :page="pagedOrganized.page.value" :total-pages="pagedOrganized.totalPages.value" :total="organizedList.length" noun="sorties" @change="pagedOrganized.goTo" />
       </div>
 
       <!-- Sorties auxquelles j'ai participé -->
       <div v-else id="panel-past" role="tabpanel" aria-labelledby="tab-past" class="mt-6 space-y-4">
         <p v-if="past.length === 0" class="rounded-lg bg-mist p-6 text-lg text-ink">Vous n’avez encore participé à aucune sortie.</p>
-        <EventRow v-for="event in past" :key="event.id" :event="event" :note="event.isOrganizer ? 'Vous organisiez cette sortie' : ''">
+        <EventRow v-for="event in pagedPast.visible.value" :key="event.id" :event="event" :note="event.isOrganizer ? 'Vous organisiez cette sortie' : ''">
           <template #actions>
             <BaseButton :to="{ name: 'event-people', params: { id: event.id } }">Voir les personnes présentes</BaseButton>
           </template>
         </EventRow>
+        <PaginationBar :page="pagedPast.page.value" :total-pages="pagedPast.totalPages.value" :total="past.length" noun="sorties" @change="pagedPast.goTo" />
       </div>
     </template>
 
