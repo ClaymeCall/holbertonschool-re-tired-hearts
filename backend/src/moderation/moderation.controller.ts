@@ -15,11 +15,11 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Role, Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { EventResponseDto } from '../events/dto/event-response.dto';
-import { ProfileResponseDto, toProfileResponse } from '../profiles/dto/profile-response.dto';
 import { User } from '../users/entities/user.entity';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 import { ListProfilesByStatusQuery } from './dto/list-profiles-by-status.query';
 import { ModerationActionResponseDto } from './dto/moderation-action-response.dto';
+import { ModerationProfileResponseDto, toModerationProfileResponse } from './dto/moderation-profile-response.dto';
 import { ModerationReasonDto } from './dto/moderation-reason.dto';
 import { ModerationService } from './moderation.service';
 
@@ -39,10 +39,10 @@ export class ModerationController {
 
   @Get('profiles')
   @ApiOperation({ summary: 'List profiles by moderation status (admin)' })
-  @ApiOkResponse({ type: [ProfileResponseDto] })
-  async listProfiles(@Query() query: ListProfilesByStatusQuery): Promise<ProfileResponseDto[]> {
+  @ApiOkResponse({ type: [ModerationProfileResponseDto] })
+  async listProfiles(@Query() query: ListProfilesByStatusQuery): Promise<ModerationProfileResponseDto[]> {
     const profiles = await this.moderation.listProfilesByStatus(query.status);
-    return profiles.map(toProfileResponse);
+    return profiles.map(toModerationProfileResponse);
   }
 
   @Get('actions')
@@ -55,46 +55,46 @@ export class ModerationController {
   @Post('profiles/:id/approve')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Approve a pending profile (admin)' })
-  @ApiOkResponse({ type: ProfileResponseDto })
+  @ApiOkResponse({ type: ModerationProfileResponseDto })
   @ApiNotFoundResponse({ description: 'Unknown profile' })
   @ApiConflictResponse({ description: 'Not a pending profile' })
   async approveProfile(
     @CurrentUser() moderator: User,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ModerationReasonDto,
-  ): Promise<ProfileResponseDto> {
+  ): Promise<ModerationProfileResponseDto> {
     const profile = await this.moderation.approveProfile(moderator, id, dto.reason);
-    return toProfileResponse(profile);
+    return toModerationProfileResponse(profile);
   }
 
   @Post('profiles/:id/block')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Block a pending or approved profile (admin)' })
-  @ApiOkResponse({ type: ProfileResponseDto })
+  @ApiOkResponse({ type: ModerationProfileResponseDto })
   @ApiNotFoundResponse({ description: 'Unknown profile' })
   @ApiConflictResponse({ description: 'Already blocked' })
   async blockProfile(
     @CurrentUser() moderator: User,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ModerationReasonDto,
-  ): Promise<ProfileResponseDto> {
+  ): Promise<ModerationProfileResponseDto> {
     const profile = await this.moderation.blockProfile(moderator, id, dto.reason);
-    return toProfileResponse(profile);
+    return toModerationProfileResponse(profile);
   }
 
   @Post('profiles/:id/unblock')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unblock a blocked profile, restoring approved (admin)' })
-  @ApiOkResponse({ type: ProfileResponseDto })
+  @ApiOkResponse({ type: ModerationProfileResponseDto })
   @ApiNotFoundResponse({ description: 'Unknown profile' })
   @ApiConflictResponse({ description: 'Not a blocked profile' })
   async unblockProfile(
     @CurrentUser() moderator: User,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ModerationReasonDto,
-  ): Promise<ProfileResponseDto> {
+  ): Promise<ModerationProfileResponseDto> {
     const profile = await this.moderation.unblockProfile(moderator, id, dto.reason);
-    return toProfileResponse(profile);
+    return toModerationProfileResponse(profile);
   }
 
   @Post('users/:id/suspend')
