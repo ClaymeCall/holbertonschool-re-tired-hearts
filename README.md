@@ -146,7 +146,7 @@ npm run demo:phase1   # anonymous request, invalid login, profile edit, discover
 npm run demo:phase3   # messaging: empty, invalid, successful and refused scenarios
 ```
 
-A re-seed does not restore data changed by a demo (for example Alice's bio): use the reset above.
+`demo:phase3` creates a new member at each run, and a re-seed does not restore data changed by a demo (for example Alice's bio): run the reset above before the live demonstration.
 
 ## Known limitations
 

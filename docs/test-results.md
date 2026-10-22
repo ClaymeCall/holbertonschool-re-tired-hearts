@@ -95,6 +95,6 @@ Stated plainly, so nothing is overstated at the presentation:
 
 Everything above can be reproduced with the commands of section 1 on a blank database. The counts of a suite can be listed with `npx jest --config test/jest-integration.json --runInBand --verbose`.
 
-## 6. Front end screens added after this run
+## 7. Front end screens added after this run
 
 The moderation screens (`ModerationView`), the legal and privacy page (`PrivacyView`) and the connection of the front end to the API (services tested by mocking `fetch`) are covered by the 188 front-end tests above, including an automated accessibility check (axe) on the moderation and privacy pages. Two parts of the front end remain simulated or local because the API has no route for them: the list of people present at an event and the saved contacts (see the README, "Known limitations").
