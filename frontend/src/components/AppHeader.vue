@@ -95,7 +95,6 @@ const solid = computed(
         <template v-if="session.isAuthenticated">
           <div class="flex flex-col gap-1" :class="layout.center">
             <router-link :to="{ name: 'events' }" :class="ghost">Sorties</router-link>
-            <router-link :to="{ name: 'my-events' }" :class="ghost">Mes sorties</router-link>
             <router-link :to="{ name: 'members' }" :class="ghost">Membres</router-link>
             <router-link :to="{ name: 'contacts' }" :class="[ghost, 'gap-2']">
               Contacts
@@ -104,6 +103,7 @@ const solid = computed(
           </div>
           <div class="flex flex-col gap-1" :class="layout.right">
             <router-link v-if="session.user?.isAdmin" :to="{ name: 'moderation' }" :class="ghost">Modération</router-link>
+            <router-link :to="{ name: 'my-events' }" :class="ghost">Mes sorties</router-link>
             <router-link :to="{ name: 'profile' }" :class="ghost">Mon profil</router-link>
             <button type="button" :class="solid" @click="logout">Se déconnecter</button>
           </div>

@@ -55,8 +55,12 @@ describe('AppHeader', () => {
     const [center, right] = nav.findAll(':scope > div')
     expect(center.classes()).toEqual(expect.arrayContaining(['xl:col-start-2', 'xl:justify-center']))
     expect(right.classes()).toEqual(expect.arrayContaining(['xl:col-start-3', 'xl:justify-end']))
-    expect(center.findAll('a').map((a) => a.text().replace(/\s+/g, ' ').trim())).toEqual(['Sorties', 'Mes sorties', 'Membres', 'Contacts'])
-    expect(right.findAll('a, button').map((el) => el.text())).toEqual(['Mon profil', 'Se déconnecter'])
+    expect(center.findAll('a').map((a) => a.text().replace(/\s+/g, ' ').trim())).toEqual(['Sorties', 'Membres', 'Contacts'])
+    expect(right.findAll('a, button').map((el) => el.text())).toEqual(['Mes sorties', 'Mon profil', 'Se déconnecter'])
+    // Pour un modérateur : Modération, puis Mes sorties, Mon profil et enfin Se déconnecter.
+    useSessionStore().user = { id: 1, isAdmin: true }
+    await flushPromises()
+    expect(right.findAll('a, button').map((el) => el.text())).toEqual(['Modération', 'Mes sorties', 'Mon profil', 'Se déconnecter'])
     const items = nav.findAll('a, button')
     expect(items.every((item) => item.classes().includes('xl:whitespace-nowrap'))).toBe(true)
   })
