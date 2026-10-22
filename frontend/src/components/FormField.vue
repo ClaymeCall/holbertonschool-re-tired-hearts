@@ -29,7 +29,7 @@ const hintClasses = computed(() => (props.compact ? 'mt-0.5 text-sm text-muted' 
 <template>
   <div>
     <label :for="id" :class="labelClasses">{{ label }}</label>
-    <p v-if="hint" :id="`${id}-hint`" :class="hintClasses">{{ hint }}</p>
+    <p v-if="hint && !compact" :id="`${id}-hint`" :class="hintClasses">{{ hint }}</p>
     <component
       :is="multiline ? 'textarea' : 'input'"
       :id="id"
@@ -43,6 +43,7 @@ const hintClasses = computed(() => (props.compact ? 'mt-0.5 text-sm text-muted' 
       :class="fieldClasses"
       @input="$emit('update:modelValue', $event.target.value)"
     />
+    <p v-if="hint && compact" :id="`${id}-hint`" :class="hintClasses">{{ hint }}</p>
     <p v-if="error" :id="`${id}-error`" class="mt-1 text-sm font-semibold text-danger">{{ error }}</p>
   </div>
 </template>
