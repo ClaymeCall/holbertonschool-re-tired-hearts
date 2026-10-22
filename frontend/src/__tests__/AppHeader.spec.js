@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import axe from 'axe-core'
 import AppHeader from '../components/AppHeader.vue'
+import { useTextZoom } from '../composables/useTextZoom'
 import { useSessionStore } from '../stores/session'
 import * as auth from '../services/auth'
 import * as chat from '../services/conversations'
@@ -45,6 +46,32 @@ describe('AppHeader', () => {
     expect(wrapper.text()).toContain('Modération')
   })
 
+  it('tient sur une seule ligne : liens principaux au centre, profil et déconnexion à droite', async () => {
+    const wrapper = mountHeader()
+    useSessionStore().user = { id: 1 }
+    await flushPromises()
+    const nav = wrapper.get('nav')
+    expect(nav.classes()).toContain('xl:contents')
+    const [center, right] = nav.findAll(':scope > div')
+    expect(center.classes()).toEqual(expect.arrayContaining(['xl:col-start-2', 'xl:justify-center']))
+    expect(right.classes()).toEqual(expect.arrayContaining(['xl:col-start-3', 'xl:justify-end']))
+    expect(center.findAll('a').map((a) => a.text().replace(/\s+/g, ' ').trim())).toEqual(['Sorties', 'Mes sorties', 'Membres', 'Contacts'])
+    expect(right.findAll('a, button').map((el) => el.text())).toEqual(['Mon profil', 'Se déconnecter'])
+    const items = nav.findAll('a, button')
+    expect(items.every((item) => item.classes().includes('xl:whitespace-nowrap'))).toBe(true)
+  })
+
+  it('ne passe en ligne qu\'à partir d\'un écran plus large quand le texte est agrandi (sinon menu déroulant)', async () => {
+    const { zoomed } = useTextZoom()
+    zoomed.value = true
+    const wrapper = mountHeader()
+    useSessionStore().user = { id: 1 }
+    await flushPromises()
+    expect(wrapper.get('nav').classes()).toContain('2xl:contents')
+    expect(wrapper.get('nav').classes()).not.toContain('xl:contents')
+    zoomed.value = false
+  })
+
   it('propose connexion et inscription aux visiteurs', () => {
     const wrapper = mountHeader()
     expect(wrapper.text()).toContain('Connexion')
@@ -59,8 +86,8 @@ describe('AppHeader', () => {
     useSessionStore().user = { id: 1 }
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Mon profil')
-    expect(wrapper.text()).toContain('Parcourir les sorties')
-    expect(wrapper.findAll('a').find((a) => a.text() === 'Parcourir les sorties').attributes('href')).toBe('/events')
+    expect(wrapper.text()).toContain('Sorties')
+    expect(wrapper.findAll('a').find((a) => a.text() === 'Sorties').attributes('href')).toBe('/events')
     expect(wrapper.text()).not.toContain('Proposer une sortie')
     expect(wrapper.text()).toContain('Mes sorties')
     expect(wrapper.text()).toContain('Contacts')

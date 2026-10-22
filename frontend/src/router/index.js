@@ -14,6 +14,7 @@ import MembersView from '../views/MembersView.vue'
 import PrivacyView from '../views/PrivacyView.vue'
 import ModerationView from '../views/ModerationView.vue'
 import { useSessionStore } from '../stores/session'
+import { setZoomSuspended } from '../composables/useTextZoom'
 import { applyPageMeta } from './meta'
 
 const routes = [
@@ -73,5 +74,7 @@ router.beforeEach(async (to) => {
 })
 
 router.afterEach(applyPageMeta)
+// La page de modération n'est jamais agrandie ; le choix d'agrandir revient en quittant la page.
+router.afterEach((to) => setZoomSuspended(Boolean(to.meta.hideTextZoom)))
 
 export default router
