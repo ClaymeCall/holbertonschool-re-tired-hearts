@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import axe from 'axe-core'
 import AppHeader from '../components/AppHeader.vue'
+import { useTextZoom } from '../composables/useTextZoom'
 import { useSessionStore } from '../stores/session'
 import * as auth from '../services/auth'
 import * as chat from '../services/conversations'
@@ -35,20 +36,27 @@ describe('AppHeader', () => {
     chat.getUnreadCount.mockResolvedValue(0)
   })
 
-  it('garde « Se déconnecter » à droite de la barre, hors de la navigation qui peut passer à la ligne', async () => {
+  it('tient sur une seule ligne : navigation en ligne sans retour à la ligne, « Se déconnecter » en dernier', async () => {
     const wrapper = mountHeader()
     useSessionStore().user = { id: 1, isAdmin: true }
     await flushPromises()
     const nav = wrapper.get('nav')
-    expect(nav.classes()).toEqual(expect.arrayContaining(['md:flex-1', 'md:justify-end', 'md:flex-wrap']))
-    // Sur grand écran : un bouton à part, après la navigation, qui ne peut donc pas tomber sur une 2e ligne.
-    const desktop = wrapper.findAll('button').find((b) => b.text() === 'Se déconnecter' && b.classes().includes('md:inline-flex'))
-    expect(desktop).toBeTruthy()
-    expect(nav.element.contains(desktop.element)).toBe(false)
-    expect(nav.element.compareDocumentPosition(desktop.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    // Dans le menu déroulant (mobile), le bouton existe aussi, masqué sur grand écran.
-    const mobile = nav.findAll('button').find((b) => b.text() === 'Se déconnecter')
-    expect(mobile.classes()).toContain('md:hidden')
+    expect(nav.classes()).toEqual(expect.arrayContaining(['xl:flex-nowrap', 'xl:justify-end', 'xl:flex-1']))
+    expect(nav.classes()).not.toContain('md:flex-wrap')
+    const items = nav.findAll('a, button')
+    expect(items[items.length - 1].text()).toBe('Se déconnecter')
+    expect(items.every((item) => item.classes().includes('xl:whitespace-nowrap'))).toBe(true)
+  })
+
+  it('ne passe en ligne qu\'à partir d\'un écran plus large quand le texte est agrandi (sinon menu déroulant)', async () => {
+    const { zoomed } = useTextZoom()
+    zoomed.value = true
+    const wrapper = mountHeader()
+    useSessionStore().user = { id: 1 }
+    await flushPromises()
+    expect(wrapper.get('nav').classes()).toEqual(expect.arrayContaining(['2xl:flex-nowrap', '2xl:flex-1']))
+    expect(wrapper.get('nav').classes()).not.toContain('xl:flex-nowrap')
+    zoomed.value = false
   })
 
   it('propose connexion et inscription aux visiteurs', () => {
@@ -65,8 +73,8 @@ describe('AppHeader', () => {
     useSessionStore().user = { id: 1 }
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Mon profil')
-    expect(wrapper.text()).toContain('Parcourir les sorties')
-    expect(wrapper.findAll('a').find((a) => a.text() === 'Parcourir les sorties').attributes('href')).toBe('/events')
+    expect(wrapper.text()).toContain('Sorties')
+    expect(wrapper.findAll('a').find((a) => a.text() === 'Sorties').attributes('href')).toBe('/events')
     expect(wrapper.text()).not.toContain('Proposer une sortie')
     expect(wrapper.text()).toContain('Mes sorties')
     expect(wrapper.text()).toContain('Contacts')
