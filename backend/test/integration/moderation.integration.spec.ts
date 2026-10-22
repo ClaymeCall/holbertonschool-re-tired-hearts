@@ -121,7 +121,7 @@ describe('Moderation API (integration)', () => {
         expect(res.status).toBe(code);
         expect(await profileStatus(target)).toBe(after);
         if (code === 200) {
-          expect(res.body).toMatchObject({ id: targetP, moderationStatus: after });
+          expect(res.body).toMatchObject({ id: targetP, userId: target.id, moderationStatus: after });
           expect(await audit()).toEqual([
             { moderator_id: moderator.id, target_type: 'profile', target_id: targetP, action: auditAction, reason: 'because' },
           ]);
@@ -158,6 +158,8 @@ describe('Moderation API (integration)', () => {
         await profileIdOf(ctx, pending2),
       ]);
       expect(res.body.every((p: { moderationStatus: string }) => p.moderationStatus === 'pending')).toBe(true);
+      // The account id, distinct from the profile id: what suspend/reactivate need.
+      expect(res.body.map((p: { userId: number }) => p.userId)).toEqual([pending1.id, pending2.id]);
     });
 
     it('rejects an unknown status filter and a missing one (400)', async () => {

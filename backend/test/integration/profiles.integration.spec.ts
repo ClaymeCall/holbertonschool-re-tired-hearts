@@ -70,6 +70,7 @@ describe('Profiles API (integration)', () => {
         const member = await createActor(ctx, { profile: status });
         const res = await call('get', '/profiles/me', member).expect(200);
         expect(res.body).toMatchObject({ moderationStatus: status, displayName: `Member ${member.id}` });
+        expect(res.body).not.toHaveProperty('userId'); // moderator-only field
       }
     });
   });
