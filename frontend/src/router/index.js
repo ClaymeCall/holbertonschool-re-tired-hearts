@@ -11,6 +11,7 @@ import EventPeopleView from '../views/EventPeopleView.vue'
 import PersonView from '../views/PersonView.vue'
 import ContactsView from '../views/ContactsView.vue'
 import MembersView from '../views/MembersView.vue'
+import PrivacyView from '../views/PrivacyView.vue'
 import ModerationView from '../views/ModerationView.vue'
 import { useSessionStore } from '../stores/session'
 import { applyPageMeta } from './meta'
@@ -28,6 +29,12 @@ const routes = [
     name: 'register',
     component: RegisterView,
     meta: { title: 'Inscription', description: 'Créez votre compte pour rejoindre des sorties entre seniors près de chez vous.', guestOnly: true },
+  },
+  {
+    path: '/privacy',
+    name: 'privacy',
+    component: PrivacyView,
+    meta: { title: 'Mentions légales et confidentialité', description: 'Qui édite Re-Tired Hearts, ce que les autres membres voient de vous et ce que nous conservons.' },
   },
   { path: '/profile', name: 'profile', component: ProfileView, meta: { title: 'Mon profil', requiresAuth: true, noindex: true } },
 ]

@@ -17,8 +17,9 @@ import TextZoomButton from './components/TextZoomButton.vue'
     </main>
     <TextZoomButton />
     <footer class="bg-ink px-4 py-3 text-paper sm:px-6">
-      <p class="mx-auto max-w-6xl text-base">
-        <span class="font-extrabold">Re-Tired Hearts</span> – un service Happy Retired
+      <p class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 text-base">
+        <span><span class="font-extrabold">Re-Tired Hearts</span> – un service Happy Retired</span>
+        <router-link :to="{ name: 'privacy' }" class="font-semibold underline">Mentions légales et confidentialité</router-link>
       </p>
     </footer>
   </div>
