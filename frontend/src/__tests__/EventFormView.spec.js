@@ -6,6 +6,7 @@ import EventFormView from '../views/EventFormView.vue'
 import * as service from '../services/events'
 
 vi.mock('../services/events')
+vi.mock('../services/places', () => ({ searchPlaces: vi.fn().mockResolvedValue({ available: true, suggestions: [] }) }))
 
 let wrapper
 let router

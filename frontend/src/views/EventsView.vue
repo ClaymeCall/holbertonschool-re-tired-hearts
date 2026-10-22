@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'v
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
 import EventCard from '../components/EventCard.vue'
+import CityField from '../components/CityField.vue'
 import FormField from '../components/FormField.vue'
 import SelectField from '../components/SelectField.vue'
 import { listEvents, listInterests } from '../services/events'
@@ -139,7 +140,7 @@ onBeforeUnmount(() => {
 
     <form class="mt-6 grid gap-4 rounded-3xl border border-mist-deep bg-white p-6 md:grid-cols-[1fr_1fr_auto] md:items-end" @submit.prevent="load">
       <SelectField id="filter-interest" v-model="filters.interest" label="Centre d’intérêt" :options="interests" placeholder="Tous les centres d’intérêt" />
-      <FormField id="filter-location" v-model="filters.location" label="Ville ou secteur" autocomplete="address-level2" />
+      <CityField id="filter-location" v-model="filters.location" label="Ville ou secteur" />
       <div class="flex gap-3">
         <BaseButton type="submit">Filtrer</BaseButton>
         <BaseButton variant="secondary" @click="reset">Effacer</BaseButton>

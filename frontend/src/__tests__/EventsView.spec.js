@@ -6,6 +6,7 @@ import EventsView from '../views/EventsView.vue'
 import * as service from '../services/events'
 
 vi.mock('../services/events')
+vi.mock('../services/places', () => ({ searchPlaces: vi.fn().mockResolvedValue({ available: true, suggestions: [] }) }))
 
 const event = (id, extra = {}) => ({
   id,
@@ -97,7 +98,7 @@ describe('EventsView', () => {
       limit: 12,
     }))
     await mountView()
-    const list = wrapper.get('ul').element
+    const list = wrapper.get('ul:not([role="listbox"])').element
     list.getBoundingClientRect = () => ({ top: -10500 }) // environ la sortie n°100
     window.dispatchEvent(new Event('scroll'))
     await new Promise((resolve) => setTimeout(resolve, 60))
@@ -114,7 +115,7 @@ describe('EventsView', () => {
       .mockResolvedValueOnce({ items: Array.from({ length: 12 }, (_, i) => event(i + 1)), total: 50, page: 1, limit: 12 })
       .mockRejectedValue(new Error('x'))
     await mountView()
-    wrapper.get('ul').element.getBoundingClientRect = () => ({ top: -3000 })
+    wrapper.get('ul:not([role="listbox"])').element.getBoundingClientRect = () => ({ top: -3000 })
     window.dispatchEvent(new Event('scroll'))
     await new Promise((resolve) => setTimeout(resolve, 60))
     await flushPromises()
