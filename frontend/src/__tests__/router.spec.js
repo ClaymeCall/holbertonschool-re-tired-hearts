@@ -44,6 +44,17 @@ describe('navigation', () => {
     expect(router.currentRoute.value.name).toBe('profile')
   })
 
+  it('réserve la modération aux modérateurs', async () => {
+    setActivePinia(createPinia())
+    auth.fetchCurrentUser.mockResolvedValue(member)
+    await router.push('/moderation')
+    expect(router.currentRoute.value.name).toBe('events')
+    setActivePinia(createPinia())
+    auth.fetchCurrentUser.mockResolvedValue({ ...member, isAdmin: true })
+    await router.push('/moderation')
+    expect(router.currentRoute.value.name).toBe('moderation')
+  })
+
   it('renvoie un membre connecté vers les sorties quand il va sur l\'accueil', async () => {
     setActivePinia(createPinia())
     auth.fetchCurrentUser.mockResolvedValue(member)

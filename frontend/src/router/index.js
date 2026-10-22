@@ -11,6 +11,7 @@ import EventPeopleView from '../views/EventPeopleView.vue'
 import PersonView from '../views/PersonView.vue'
 import ContactsView from '../views/ContactsView.vue'
 import MembersView from '../views/MembersView.vue'
+import ModerationView from '../views/ModerationView.vue'
 import { useSessionStore } from '../stores/session'
 import { applyPageMeta } from './meta'
 
@@ -43,6 +44,7 @@ routes.push(
   { path: '/members', name: 'members', component: MembersView, meta: privateMeta('Les membres') },
   { path: '/contacts', name: 'contacts', component: ContactsView, meta: privateMeta('Mes contacts') },
   { path: '/my-events', name: 'my-events', component: MyEventsView, meta: privateMeta('Mes sorties') },
+  { path: '/moderation', name: 'moderation', component: ModerationView, meta: { ...privateMeta('Modération'), requiresModerator: true } },
 )
 
 const router = createRouter({
@@ -59,6 +61,8 @@ router.beforeEach(async (to) => {
   // Une fois connecté, l'accueil de présentation laisse place à la liste des sorties.
   if (to.name === 'home' && session.isAuthenticated) return { name: 'events' }
   if (to.meta.requiresAuth && !session.isAuthenticated) return { name: 'login' }
+  // Réservé aux modérateurs ; l'API refuse de toute façon les autres (403).
+  if (to.meta.requiresModerator && !session.user?.isAdmin) return { name: 'events' }
 })
 
 router.afterEach(applyPageMeta)
