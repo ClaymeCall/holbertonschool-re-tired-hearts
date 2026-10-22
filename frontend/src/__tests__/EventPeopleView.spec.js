@@ -5,8 +5,10 @@ import axe from 'axe-core'
 import EventPeopleView from '../views/EventPeopleView.vue'
 import { ApiError } from '../services/api'
 import * as service from '../services/events'
+import * as participants from '../services/participants'
 
 vi.mock('../services/events')
+vi.mock('../services/participants')
 
 let wrapper
 async function mountView() {
@@ -28,7 +30,7 @@ describe('EventPeopleView', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     service.getEvent.mockResolvedValue({ id: 7, title: 'Randonnée d’automne' })
-    service.listParticipants.mockResolvedValue([
+    participants.listParticipants.mockResolvedValue([
       { id: 2, displayName: 'Colette', isOrganizer: true },
       { id: 103, displayName: 'Henri', isOrganizer: false },
     ])
@@ -44,13 +46,13 @@ describe('EventPeopleView', () => {
   })
 
   it('indique quand personne d\'autre n\'était présent', async () => {
-    service.listParticipants.mockResolvedValue([])
+    participants.listParticipants.mockResolvedValue([])
     await mountView()
     expect(wrapper.text()).toContain('Aucune autre personne')
   })
 
   it('explique le refus pour quelqu\'un qui n\'était pas inscrit', async () => {
-    service.listParticipants.mockRejectedValue(new ApiError(403, 'x'))
+    participants.listParticipants.mockRejectedValue(new ApiError(403, 'x'))
     await mountView()
     expect(wrapper.get('[role="alert"]').text()).toContain('Seuls l’organisateur et les inscrits')
   })

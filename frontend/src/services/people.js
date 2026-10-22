@@ -1,73 +1,71 @@
-import { ApiError } from './api'
-import { PEOPLE, findPerson } from './directory'
-import { listMetPersonIds, listOrganizerIds } from './events'
+import { request } from './api'
+import { useSessionStore } from '../stores/session'
 
-// Simulation : ces routes n'existent pas encore côté API (la PR #108 apporte les profils). Hypothèses à confirmer :
-//  - tous les profils approuvés se voient et se recherchent, sans condition (un profil inexistant : 404) ;
-//  - recherche : paramètres `search` (nom ou ville) et `interest` ;
-//  - profil : { id, displayName, bio, approximateLocation, interests [{ id, name }], isContact,
-//    canMessage, acceptsMessages } ;
-//  - `canMessage` est calculé côté serveur : on ne peut écrire qu'à une personne avec qui on a partagé une
-//    sortie, ou à l'organisateur d'une sortie (docs/messaging-rules.md) ;
-//  - contacts : enregistrer / retirer un profil, et lister mes contacts enregistrés.
+// Profils des membres : GET /v1/profiles (profils approuvés) et GET /v1/profiles/:id.
+// La route de liste n'a pas de paramètres : la recherche (nom ou ville) et le filtre par centre
+// d'intérêt se font ici. « Contacts » n'a pas de route côté API : la liste est gardée dans le navigateur.
 
-const delay = () => new Promise((resolve) => setTimeout(resolve, 250))
-const saved = new Set([2])
-const NO_MESSAGES = new Set([113]) // personnes qui ont désactivé les messages
-export const refusesMessages = (id) => NO_MESSAGES.has(Number(id))
-const notFound = () => new ApiError(404, 'Introuvable.')
-
-function existingPerson(userId) {
-  const person = findPerson(userId)
-  if (!person) throw notFound()
-  return person
+// Une clé par compte : sur un poste partagé, un membre ne voit pas les contacts d'un autre.
+const contactsKey = () => {
+  const id = useSessionStore().user?.id
+  return id ? `retired-hearts:contacts:${id}` : null
 }
 
-// Lien de contact : une sortie partagée, ou l'organisateur d'une sortie.
-export function canMessagePerson(userId) {
-  const id = Number(userId)
-  return listMetPersonIds().has(id) || listOrganizerIds().has(id)
+function savedIds() {
+  const key = contactsKey()
+  if (!key) return new Set()
+  try {
+    const ids = JSON.parse(localStorage.getItem(key) ?? '[]')
+    return new Set(Array.isArray(ids) ? ids.filter(Number.isInteger) : [])
+  } catch {
+    return new Set()
+  }
 }
 
-const present = (person) => ({
-  ...person,
-  interests: person.interests.map((interest) => ({ ...interest })),
-  isContact: saved.has(person.id),
-  canMessage: canMessagePerson(person.id),
-  acceptsMessages: !NO_MESSAGES.has(person.id),
-})
+function persist(ids) {
+  const key = contactsKey()
+  if (!key) return
+  try {
+    localStorage.setItem(key, JSON.stringify([...ids]))
+  } catch {
+    // Stockage indisponible (navigation privée) : les contacts ne sont pas conservés.
+  }
+}
+
+const present = (person) => ({ ...person, isContact: savedIds().has(person.id) })
 
 const normalize = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 export async function getPerson(userId) {
-  await delay()
-  return present(existingPerson(userId))
+  return present(await request(`/v1/profiles/${userId}`))
 }
 
-// Recherche de membres : nom ou ville, et centre d'intérêt.
 export async function searchPeople({ search = '', interest = '' } = {}) {
-  await delay()
   const wanted = normalize(search.trim())
-  return PEOPLE.filter((person) => !wanted || normalize(person.displayName).includes(wanted) || normalize(person.approximateLocation).includes(wanted))
+  const profiles = await request('/v1/profiles')
+  return profiles
+    .filter((person) => !wanted || normalize(person.displayName).includes(wanted) || normalize(person.approximateLocation).includes(wanted))
     .filter((person) => !interest || person.interests.some((item) => item.id === Number(interest)))
     .map(present)
 }
 
 export async function listContacts() {
-  await delay()
-  return [...saved].map((id) => findPerson(id)).filter(Boolean).map(present)
+  const people = await Promise.all(
+    [...savedIds()].map((id) => getPerson(id).catch(() => null)), // profil devenu indisponible : ignoré
+  )
+  return people.filter(Boolean)
 }
 
 export async function saveContact(userId) {
-  await delay()
-  const person = existingPerson(userId)
-  saved.add(person.id)
-  return present(person)
+  const person = await getPerson(userId)
+  persist(new Set([...savedIds(), person.id]))
+  return { ...person, isContact: true }
 }
 
 export async function removeContact(userId) {
-  await delay()
-  const person = existingPerson(userId)
-  saved.delete(person.id)
-  return present(person)
+  const person = await getPerson(userId)
+  const ids = savedIds()
+  ids.delete(person.id)
+  persist(ids)
+  return { ...person, isContact: false }
 }

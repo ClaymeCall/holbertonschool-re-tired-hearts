@@ -17,8 +17,9 @@
     "migration:revert": "npm run typeorm -- migration:revert -d src/database/data-source.ts",
     "seed": "ts-node src/database/seed.ts",
     "test:integration": "jest --config test/jest-integration.json --runInBand",
-    "demo:phase1": "bash scripts/demo-phase1-identity.sh"
-  },
+    "demo:phase1": "bash scripts/demo-phase1-identity.sh",
+    "demo:phase3": "bash scripts/demo-phase3-messaging.sh"
+},
   "dependencies": {
     "@nestjs/common": "^10.4.4",
     "@nestjs/core": "^10.4.4",
