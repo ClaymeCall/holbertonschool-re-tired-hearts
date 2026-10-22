@@ -12,7 +12,7 @@ import TextZoomButton from './components/TextZoomButton.vue'
       Aller au contenu principal
     </a>
     <AppHeader />
-    <main id="main" class="flex-1">
+    <main id="main" class="flex flex-1 flex-col [&>*]:w-full">
       <router-view />
     </main>
     <TextZoomButton />
