@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { useSessionStore } from '../stores/session'
 import { getPerson, listContacts, removeContact, saveContact, searchPeople } from '../services/people'
 
 const profiles = [
@@ -20,6 +22,8 @@ function stubProfiles() {
 
 beforeEach(() => {
   localStorage.clear()
+  setActivePinia(createPinia())
+  useSessionStore().user = { id: 1 }
   stubProfiles()
 })
 afterEach(() => vi.unstubAllGlobals())
@@ -47,6 +51,15 @@ describe('profils et recherche de membres', () => {
     expect((await getPerson(2)).isContact).toBe(true)
     expect((await removeContact(2)).isContact).toBe(false)
     expect(await listContacts()).toEqual([])
+  })
+
+  it('garde les contacts séparés par compte sur un même navigateur', async () => {
+    await saveContact(2)
+    const session = useSessionStore()
+    session.user = { id: 7 }
+    expect(await listContacts()).toEqual([])
+    session.user = { id: 1 }
+    expect((await listContacts()).map((p) => p.id)).toEqual([2])
   })
 
   it('refuse d\'enregistrer un profil inexistant', async () => {

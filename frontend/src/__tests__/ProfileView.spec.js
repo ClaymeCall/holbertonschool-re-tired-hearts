@@ -39,6 +39,7 @@ describe('ProfileView', () => {
     profile.updateMyProfile.mockResolvedValue({ ...base, displayName: 'Jeanne' })
     const wrapper = await mountView()
     await wrapper.get('#displayName').setValue('Jeanne')
+    await wrapper.get('#approximateLocation').setValue('Lyon')
     await wrapper.get('form').trigger('submit')
     await flushPromises()
     expect(profile.updateMyProfile).toHaveBeenCalled()
@@ -67,6 +68,14 @@ describe('ProfileView', () => {
     await wrapper.get('#displayName').setValue('  ')
     await wrapper.get('form').trigger('submit')
     expect(wrapper.text()).toContain('Saisissez le nom affiché')
+    expect(profile.updateMyProfile).not.toHaveBeenCalled()
+  })
+
+  it('exige une ville ou une région', async () => {
+    const wrapper = await mountView()
+    await wrapper.get('#approximateLocation').setValue('  ')
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.text()).toContain('Indiquez votre ville ou votre région')
     expect(profile.updateMyProfile).not.toHaveBeenCalled()
   })
 

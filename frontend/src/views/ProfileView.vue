@@ -9,7 +9,7 @@ import { photos } from '../assets/photos'
 import { getMyProfile, updateMyProfile } from '../services/profile'
 
 const form = reactive({ displayName: '', bio: '', approximateLocation: '', messagingEnabled: true })
-const errors = reactive({ displayName: '' })
+const errors = reactive({ displayName: '', approximateLocation: '' })
 const loadError = ref('')
 const formError = ref('')
 const success = ref(false)
@@ -43,7 +43,8 @@ async function submit() {
   formError.value = ''
   success.value = false
   errors.displayName = form.displayName.trim() ? '' : 'Saisissez le nom affiché sur votre profil.'
-  if (errors.displayName) return
+  errors.approximateLocation = form.approximateLocation.trim() ? '' : 'Indiquez votre ville ou votre région.'
+  if (errors.displayName || errors.approximateLocation) return
   saving.value = true
   try {
     const saved = await updateMyProfile({
@@ -86,9 +87,10 @@ onMounted(load)
       <FormField
         id="approximateLocation"
         v-model="form.approximateLocation"
-        label="Ville ou région (facultatif)"
+        label="Ville ou région"
         hint="N’indiquez jamais votre adresse exacte."
         autocomplete="address-level2"
+        :error="errors.approximateLocation"
       />
 
       <div>

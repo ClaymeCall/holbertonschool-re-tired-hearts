@@ -1,14 +1,21 @@
 import { request } from './api'
+import { useSessionStore } from '../stores/session'
 
 // Profils des membres : GET /v1/profiles (profils approuvés) et GET /v1/profiles/:id.
 // La route de liste n'a pas de paramètres : la recherche (nom ou ville) et le filtre par centre
 // d'intérêt se font ici. « Contacts » n'a pas de route côté API : la liste est gardée dans le navigateur.
 
-const CONTACTS_KEY = 'retired-hearts:contacts'
+// Une clé par compte : sur un poste partagé, un membre ne voit pas les contacts d'un autre.
+const contactsKey = () => {
+  const id = useSessionStore().user?.id
+  return id ? `retired-hearts:contacts:${id}` : null
+}
 
 function savedIds() {
+  const key = contactsKey()
+  if (!key) return new Set()
   try {
-    const ids = JSON.parse(localStorage.getItem(CONTACTS_KEY) ?? '[]')
+    const ids = JSON.parse(localStorage.getItem(key) ?? '[]')
     return new Set(Array.isArray(ids) ? ids.filter(Number.isInteger) : [])
   } catch {
     return new Set()
@@ -16,8 +23,10 @@ function savedIds() {
 }
 
 function persist(ids) {
+  const key = contactsKey()
+  if (!key) return
   try {
-    localStorage.setItem(CONTACTS_KEY, JSON.stringify([...ids]))
+    localStorage.setItem(key, JSON.stringify([...ids]))
   } catch {
     // Stockage indisponible (navigation privée) : les contacts ne sont pas conservés.
   }
