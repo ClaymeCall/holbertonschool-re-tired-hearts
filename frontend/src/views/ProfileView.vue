@@ -1,12 +1,12 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import CityField from '../components/CityField.vue'
 import FormField from '../components/FormField.vue'
 import BaseButton from '../components/BaseButton.vue'
 import CheckboxField from '../components/CheckboxField.vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import PageCard from '../components/PageCard.vue'
-import { photos } from '../assets/photos'
+import { portraitFor } from '../utils/portrait'
 import { getMyProfile, updateMyProfile } from '../services/profile'
 
 const form = reactive({ displayName: '', bio: '', approximateLocation: '', messagingEnabled: true })
@@ -17,6 +17,8 @@ const success = ref(false)
 const loading = ref(true)
 const saving = ref(false)
 const isNew = ref(false)
+// Mon portrait (la photo par défaut tant que je n'en ai pas choisi) ; décoratif, le nom est déjà affiché.
+const ownPhoto = computed(() => ({ src: portraitFor(form.displayName), width: 480, height: 720, alt: '' }))
 
 async function load() {
   loading.value = true
@@ -68,7 +70,7 @@ onMounted(load)
 </script>
 
 <template>
-  <PageCard :photo="photos.womanPortrait" photo-position="object-top" title="Mon profil" intro="Ce que les autres membres verront de vous.">
+  <PageCard :photo="ownPhoto" photo-position="object-top" title="Mon profil" intro="Ce que les autres membres verront de vous.">
     <p v-if="loading" role="status" class="text-lg text-muted">Chargement de votre profil…</p>
 
     <div v-else-if="loadError">
