@@ -33,10 +33,10 @@ The integration tests run on a separate database named `<DB_NAME>_test`, created
 | Layer | Command | Suites / files | Tests | Result |
 |---|---|---|---|---|
 | Back end, unit | `npm test` | 20 suites | 209 | all passed |
-| Back end, integration | `npm run test:integration` | 5 suites (6 with #124) | 130 (188 with #124) | all passed |
-| Front end | `npx vitest run` | 23 files | 178 | all passed |
+| Back end, integration | `npm run test:integration` | 6 suites | 188 | all passed |
+| Front end | `npx vitest run` | 28 files | 197 | all passed |
 | Back end type check | `tsc --noEmit` | , | , | no error |
-| Front end build | `vite build` | , | , | built (main script 191 kB, 65 kB compressed) |
+| Front end build | `vite build` | , | , | built (main script 197 kB, 66 kB compressed) |
 | Scripted demos | `demo:phase1`, `demo:phase3` | 2 scripts | every call checked | all as expected |
 
 No test failed, and none is skipped (`.skip` or `.todo`) in the repository.
@@ -94,3 +94,7 @@ Stated plainly, so nothing is overstated at the presentation:
 ## 6. Reading the results again
 
 Everything above can be reproduced with the commands of section 1 on a blank database. The counts of a suite can be listed with `npx jest --config test/jest-integration.json --runInBand --verbose`.
+
+## 7. Front end screens added after this run
+
+The moderation screens (`ModerationView`), the legal and privacy page (`PrivacyView`) and the connection of the front end to the API (services tested by mocking `fetch`) are covered by the 197 front-end tests above, including an automated accessibility check (axe) on the moderation and privacy pages. Two parts of the front end remain simulated or local because the API has no route for them: the list of people present at an event and the saved contacts (see the README, "Known limitations").

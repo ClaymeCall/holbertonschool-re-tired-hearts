@@ -24,7 +24,7 @@ function mountHeader() {
   const stub = { template: '<div />' }
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: ['home', 'login', 'register', 'profile', 'events', 'event-new', 'my-events', 'contacts', 'members'].map((name) => ({ path: name === 'home' ? '/' : `/${name}`, name, component: stub })),
+    routes: ['home', 'login', 'register', 'profile', 'events', 'event-new', 'my-events', 'contacts', 'members', 'moderation'].map((name) => ({ path: name === 'home' ? '/' : `/${name}`, name, component: stub })),
   })
   currentRouter = router
   mounted = mount(AppHeader, { global: { plugins: [pinia, router] }, attachTo: document.body })
@@ -34,6 +34,16 @@ function mountHeader() {
 describe('AppHeader', () => {
   beforeEach(() => {
     chat.getUnreadCount.mockResolvedValue(0)
+  })
+
+  it('montre le lien Modération aux modérateurs seulement', async () => {
+    const wrapper = mountHeader()
+    useSessionStore().user = { id: 1, isAdmin: false }
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('Modération')
+    useSessionStore().user = { id: 1, isAdmin: true }
+    await flushPromises()
+    expect(wrapper.text()).toContain('Modération')
   })
 
   it('tient sur une seule ligne : liens principaux au centre, profil et déconnexion à droite', async () => {

@@ -12,7 +12,7 @@ const session = useSessionStore()
 const router = useRouter()
 const unread = useUnreadStore()
 const route = useRoute()
-const { zoomed } = useTextZoom()
+const { active: zoomed } = useTextZoom() // agrandissement réellement appliqué à la page affichée
 
 // Sur mobile, la navigation est un menu déroulant ; sur grand écran, elle reste affichée en ligne.
 const menuOpen = ref(false)
@@ -103,6 +103,7 @@ const solid = computed(
             </router-link>
           </div>
           <div class="flex flex-col gap-1" :class="layout.right">
+            <router-link v-if="session.user?.isAdmin" :to="{ name: 'moderation' }" :class="ghost">Modération</router-link>
             <router-link :to="{ name: 'profile' }" :class="ghost">Mon profil</router-link>
             <button type="button" :class="solid" @click="logout">Se déconnecter</button>
           </div>
