@@ -28,7 +28,7 @@ export const MODERATOR_SEED: SeedUserSpec = {
 // with the same demo password.
 export const MEMBER_KEYS = [
   'alice', 'bob', 'carol', 'dave', 'emma', 'farid', 'gaby', 'hugo',
-  'colette', 'gerard', 'francoise', 'jacques', 'monique', 'henri', 'odile', 'lucien', 'josette',
+  'colette', 'gerard', 'francoise', 'jacques', 'monique', 'henri', 'odile', 'josette',
   'michel', 'nicole', 'bernard', 'christiane', 'pierre', 'simone', 'raymond', 'denise',
 ] as const;
 

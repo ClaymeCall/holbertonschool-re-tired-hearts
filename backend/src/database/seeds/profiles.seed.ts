@@ -119,13 +119,6 @@ const DEMO_PROFILE_SEEDS: Record<MemberKey, SeedProfileSpec> = {
     moderationStatus: ProfileModerationStatus.APPROVED,
     interestNames: ['Danse', 'Musique et chant'],
   },
-  lucien: {
-    displayName: 'Lucien Marchand',
-    bio: 'Retraité de la marine, j’aime la mer, la lecture et les longues marches.',
-    approximateLocation: 'Marseille',
-    moderationStatus: ProfileModerationStatus.APPROVED,
-    interestNames: ['Randonnée et marche', 'Lecture et clubs de lecture'],
-  },
   josette: {
     displayName: 'Josette Faure',
     bio: 'Bénévole dans une association de quartier, toujours prête à donner un coup de main.',

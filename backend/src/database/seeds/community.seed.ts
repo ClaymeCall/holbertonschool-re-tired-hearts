@@ -26,10 +26,10 @@ const EVENTS: CommunityEvent[] = [
   { organizer: 'colette', interest: 'Arts et loisirs créatifs', title: 'Atelier poterie et modelage', description: 'Initiation au modelage de l’argile, chacun repart avec sa pièce après la cuisson.', city: 'Villeurbanne', inDays: 6, capacity: 8, status: 'published', registered: ['monique', 'emma', 'denise'] },
   { organizer: 'gerard', interest: 'Randonnée et marche', title: 'Randonnée jusqu’au fort de la Bastille', description: 'Montée tranquille avec de belles vues sur la ville, pause pique-nique au sommet.', city: 'Grenoble', inDays: 13, capacity: 12, status: 'published', registered: ['farid', 'jacques', 'michel'] },
   { organizer: 'francoise', interest: 'Musique et chant', title: 'Répétition ouverte de la chorale', description: 'On chante ensemble des chansons françaises, aucune lecture de partition n’est nécessaire.', city: 'Annecy', inDays: 4, capacity: 25, status: 'published', registered: ['odile', 'pierre', 'colette'] },
-  { organizer: 'jacques', interest: 'Randonnée et marche', title: 'Balade à vélo le long de la ViaRhôna', description: 'Une trentaine de kilomètres sur piste plate, à votre rythme, avec une halte déjeuner.', city: 'Valence', inDays: 11, capacity: 14, status: 'published', registered: ['nicole', 'henri', 'lucien'] },
+  { organizer: 'jacques', interest: 'Randonnée et marche', title: 'Balade à vélo le long de la ViaRhôna', description: 'Une trentaine de kilomètres sur piste plate, à votre rythme, avec une halte déjeuner.', city: 'Valence', inDays: 11, capacity: 14, status: 'published', registered: ['nicole', 'henri'] },
   { organizer: 'monique', interest: 'Jardinage', title: 'Troc de plantes et de graines', description: 'Apportez vos boutures et vos graines, repartez avec celles des autres et de bons conseils.', city: 'Saint-Étienne', inDays: 15, capacity: 20, status: 'published', registered: ['alice', 'colette', 'josette'] },
   { organizer: 'odile', interest: 'Danse', title: 'Thé dansant au salon', description: 'Valses, tangos et slows autour d’un thé et de petits gâteaux, ambiance chaleureuse.', city: 'Paris', inDays: 17, capacity: 40, status: 'published', registered: ['bernard', 'denise', 'francoise'] },
-  { organizer: 'josette', interest: 'Bénévolat', title: 'Collecte de livres pour la bibliothèque du quartier', description: 'On trie, on range et on étiquette les dons, puis on partage un goûter.', city: 'Toulouse', inDays: 19, capacity: 12, status: 'published', registered: ['emma', 'lucien'] },
+  { organizer: 'josette', interest: 'Bénévolat', title: 'Collecte de livres pour la bibliothèque du quartier', description: 'On trie, on range et on étiquette les dons, puis on partage un goûter.', city: 'Toulouse', inDays: 19, capacity: 12, status: 'published', registered: ['emma', 'nicole'] },
   { organizer: 'michel', interest: 'Photographie', title: 'Sortie photo sur les quais de la Garonne', description: 'Lumière du soir et reflets sur l’eau, pour débutants comme pour confirmés.', city: 'Bordeaux', inDays: 22, capacity: 10, status: 'published', registered: ['gerard', 'nicole'] },
   { organizer: 'bernard', interest: 'Lecture et clubs de lecture', title: 'Club de lecture : un classique à relire', description: 'Nous relisons un grand roman du XIXe siècle et nous en discutons librement.', city: 'Lille', inDays: 7, capacity: 12, status: 'published', registered: ['odile', 'emma', 'christiane'] },
   { organizer: 'christiane', interest: 'Cuisine', title: 'Repas partagé de saison', description: 'Chacun apporte un plat de saison, nous mettons la table ensemble.', city: 'Strasbourg', inDays: 10, capacity: 16, status: 'published', registered: ['pierre', 'bernard', 'josette', 'denise'] },
@@ -151,7 +151,7 @@ async function seedChat(dataSource: DataSource, users: SeedUsers, chat: Chat): P
 // The new approved profiles went through the moderator, like the first ones.
 async function approveCommunityProfiles(dataSource: DataSource, users: SeedUsers): Promise<void> {
   const approved: MemberKey[] = [
-    'colette', 'gerard', 'francoise', 'jacques', 'monique', 'henri', 'odile', 'lucien', 'josette',
+    'colette', 'gerard', 'francoise', 'jacques', 'monique', 'henri', 'odile', 'josette',
     'michel', 'nicole', 'bernard', 'christiane', 'pierre', 'denise',
   ];
   for (const key of approved) {

@@ -102,7 +102,7 @@ Created by `npm run seed` (step 3). Their state is what the demos rely on.
 | `carol@retired-hearts.demo` | `DemoMember123!` | profile pending moderator approval |
 | `dave@retired-hearts.demo` | `DemoMember123!` | approved profile, account suspended (shows the suspended-account restriction) |
 
-The seed also creates more members, so the site feels alive: 17 more at `<first name>@retired-hearts.demo` with the member password (`colette`, `gerard`, `francoise`, `jacques`, `monique`, `henri`, `odile`, `lucien`, `josette`, `michel`, `nicole`, `bernard`, `christiane`, `pierre`, `denise` approved; `simone` and `raymond` pending). In total about 25 members in 17 cities, 34 events, conversations with unread messages, all in French.
+The seed also creates more members, so the site feels alive: 16 more at `<first name>@retired-hearts.demo` with the member password (`colette`, `gerard`, `francoise`, `jacques`, `monique`, `henri`, `odile`, `josette`, `michel`, `nicole`, `bernard`, `christiane`, `pierre`, `denise` approved; `simone` and `raymond` pending). In total about 25 members in 17 cities, 34 events, conversations with unread messages, all in French.
 
 ## Environment variables
 
