@@ -81,3 +81,78 @@ docker compose down
 ```
 
 Add `-v` to also remove the database volume and start from a clean database on the next run.
+
+## URLs
+
+| What | URL |
+|------|-----|
+| Web app | http://localhost:5173 |
+| API (all routes are under `/v1`) | http://localhost:3000/v1 |
+| API documentation (Swagger) | http://localhost:3000/v1/docs |
+
+## Demo accounts
+
+Created by `npm run seed` (step 3). Their state is what the demos rely on.
+
+| Account | Password | State |
+|---------|----------|-------|
+| `moderator@retired-hearts.demo` | `DemoModerator123!` | moderator, sees the **Modération** page |
+| `alice@retired-hearts.demo` | `DemoMember123!` | approved, organizes a published hike |
+| `bob@retired-hearts.demo` | `DemoMember123!` | approved, registered to Alice's hike |
+| `carol@retired-hearts.demo` | `DemoMember123!` | profile pending moderator approval |
+| `dave@retired-hearts.demo` | `DemoMember123!` | approved profile, account suspended (shows the suspended-account restriction) |
+
+## Environment variables
+
+Defined in `.env` (copy `.env.example`). Never commit `.env`.
+
+| Variable | Used by | Purpose |
+|----------|---------|---------|
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | `db`, `backend` | database credentials |
+| `DB_HOST_PORT` | `db` | host port for PostgreSQL (change if 5432 is taken) |
+| `JWT_SECRET` | `backend` | signs the session cookie, use a long random value outside local dev |
+| `CORS_ORIGIN` | `backend` | front-end origin(s) allowed to send credentialed requests |
+| `VITE_API_URL` | `frontend` | API base URL (defaults to `http://localhost:3000`) |
+
+## Tests
+
+```bash
+docker compose exec backend npm test                  # unit tests (Jest)
+docker compose exec backend npm run test:integration  # real HTTP requests against a PostgreSQL test database
+docker compose exec frontend npx vitest run           # front end (Vitest + Vue Test Utils)
+docker compose exec frontend npx vite build           # production build
+```
+
+The integration tests use a separate database named `<POSTGRES_DB>_test`, created on first use: your development data is never touched. Commands, results and known gaps are recorded in `docs/test-results.md`.
+
+## Reset to a clean state
+
+```bash
+docker compose down -v          # removes the database volume
+docker compose up --build -d
+docker compose exec backend npm run migration:run
+docker compose exec backend npm run seed
+```
+
+More detail in `docs/contributing.md#recreating-a-blank-database-and-reseeding`.
+
+## Demo scripts
+
+Scripted walks through the API with `curl`, run from your machine against the running and seeded stack:
+
+```bash
+cd backend
+npm run demo:phase1   # anonymous request, invalid login, profile edit, discovery
+npm run demo:phase3   # messaging: empty, invalid, successful and refused scenarios
+```
+
+`demo:phase3` creates a new member at each run, and a re-seed does not restore data changed by a demo (for example Alice's bio): run the reset above before the live demonstration.
+
+## Known limitations
+
+- The location is free text (a city or region): no distance search. Suggestions come from `geo.api.gouv.fr`; typing by hand always works.
+- Messages are fetched regularly: there is no real-time chat.
+- The list of people present at an event is simulated in the front end (drawn from real profiles): the API has no route for it yet.
+- Saved contacts are kept in the browser, per account: the API has no route for them.
+- No self-service password reset: see `docs/api-conventions.md` for the documented procedure.
+- No advanced matching, no mobile application, no complete reporting workflow.

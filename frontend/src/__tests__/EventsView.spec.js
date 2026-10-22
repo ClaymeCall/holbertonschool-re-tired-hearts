@@ -6,6 +6,7 @@ import EventsView from '../views/EventsView.vue'
 import * as service from '../services/events'
 
 vi.mock('../services/events')
+vi.mock('../services/places', () => ({ searchPlaces: vi.fn().mockResolvedValue({ available: true, suggestions: [] }) }))
 
 const event = (id, extra = {}) => ({
   id,
