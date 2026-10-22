@@ -50,6 +50,7 @@ docker compose exec backend npm run migration:run
 
 Skipping this step is the most common "it worked yesterday" surprise in this project: the stack starts fine, but every request that touches the database (e.g. `POST /v1/auth/register`) fails with `relation "users" does not exist` until migrations are run.
 
+## Recreating a blank database and reseeding
 
 ```bash
 docker compose down -v                        # stops services and removes db_data
