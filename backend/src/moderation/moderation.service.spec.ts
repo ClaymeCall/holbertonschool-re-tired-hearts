@@ -10,7 +10,7 @@ import { ModerationAction } from './entities/moderation-action.entity';
 import { ModerationService } from './moderation.service';
 
 type ActionsRepoMock = { find: jest.Mock };
-type UsersRepoMock = { findOneBy: jest.Mock };
+type UsersRepoMock = { findOneBy: jest.Mock; find: jest.Mock };
 type ManagerMock = { create: jest.Mock; save: jest.Mock; update: jest.Mock; findOneBy: jest.Mock };
 
 describe('ModerationService', () => {
@@ -29,7 +29,7 @@ describe('ModerationService', () => {
 
   beforeEach(async () => {
     actionsRepo = { find: jest.fn().mockResolvedValue([]) };
-    usersRepo = { findOneBy: jest.fn().mockResolvedValue(targetUser) };
+    usersRepo = { findOneBy: jest.fn().mockResolvedValue(targetUser), find: jest.fn().mockResolvedValue([targetUser]) };
     // The transaction's manager: state changes and the audit row both go through it.
     manager = {
       create: jest.fn((_entity, input) => ({ ...input })),
