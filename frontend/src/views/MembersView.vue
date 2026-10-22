@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
 import FormField from '../components/FormField.vue'
@@ -7,28 +7,16 @@ import BaseModal from '../components/BaseModal.vue'
 import PaginationBar from '../components/PaginationBar.vue'
 import PersonPortrait from '../components/PersonPortrait.vue'
 import SelectField from '../components/SelectField.vue'
+import { usePagedList } from '../composables/usePagedList'
 import { listInterests } from '../services/events'
 import { searchPeople } from '../services/people'
-import { totalPagesFor } from '../utils/pagination'
-
-const PAGE_SIZE = 12 // 3 rangées de 4 cartes
 
 const filters = reactive({ search: '', interest: '' })
 const interests = ref([])
 const people = ref([])
-const page = ref(1)
 const selected = ref(null)
 const top = ref(null)
-
-const totalPages = computed(() => totalPagesFor(people.value.length, PAGE_SIZE))
-const visible = computed(() => people.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
-
-// Changer de page ramène en haut de la liste.
-async function goTo(next) {
-  page.value = next
-  await nextTick()
-  top.value?.scrollIntoView?.({ block: 'start' })
-}
+const { page, totalPages, visible, goTo } = usePagedList(people, { anchor: top })
 const loading = ref(true)
 const error = ref('')
 
