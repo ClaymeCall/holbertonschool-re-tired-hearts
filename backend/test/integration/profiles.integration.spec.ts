@@ -130,7 +130,7 @@ describe('Profiles API (integration)', () => {
       const [profile] = res.body;
       expect(profile).toMatchObject({ displayName: `Member ${approved.id}`, approximateLocation: 'Lyon' });
       expect(profile).not.toHaveProperty('moderationStatus');
-      expect(profile).not.toHaveProperty('messagingEnabled');
+      expect(profile).toHaveProperty('messagingEnabled', true);
       expect(profile).not.toHaveProperty('email');
     });
 
@@ -172,7 +172,7 @@ describe('Profiles API (integration)', () => {
       const res = await call('get', `/profiles/${await profileIdOf(ctx, target)}`, viewer).expect(200);
       expect(res.body).toMatchObject({ displayName: `Member ${target.id}` });
       expect(res.body).not.toHaveProperty('moderationStatus');
-      expect(res.body).not.toHaveProperty('messagingEnabled');
+      expect(res.body).toHaveProperty('messagingEnabled', true);
       expect(res.body).not.toHaveProperty('email');
     });
 

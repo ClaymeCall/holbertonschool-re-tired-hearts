@@ -3,8 +3,8 @@ import { InterestResponseDto, toInterestResponse } from '../../interests/dto/int
 import { Profile } from '../entities/profile.entity';
 
 // Discovery view: what one authenticated member sees of another's approved profile.
-// Deliberately omits `messagingEnabled` and `moderationStatus` — see
-// docs/profile-visibility-rules.md ("Field visibility").
+// Includes `messagingEnabled` so the client can grey out message sending; deliberately omits
+// `moderationStatus` — see docs/profile-visibility-rules.md ("Field visibility").
 export class PublicProfileResponseDto {
   @ApiProperty({ example: 1 })
   id: number;
@@ -18,6 +18,13 @@ export class PublicProfileResponseDto {
   @ApiProperty({ example: 'Lyon' })
   approximateLocation: string;
 
+  @ApiProperty({
+    example: true,
+    description:
+      'Whether this member accepts private messages. A UI hint only: sending is still checked server-side against the full eligibility rule.',
+  })
+  messagingEnabled: boolean;
+
   @ApiProperty({ type: [InterestResponseDto] })
   interests: InterestResponseDto[];
 }
@@ -28,6 +35,7 @@ export function toPublicProfileResponse(profile: Profile): PublicProfileResponse
     displayName: profile.displayName,
     bio: profile.bio,
     approximateLocation: profile.approximateLocation,
+    messagingEnabled: profile.messagingEnabled,
     interests: (profile.interests ?? []).map(toInterestResponse),
   };
 }

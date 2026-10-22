@@ -6,7 +6,9 @@ Phase 0 deliverable covering issue **#26** (the same business rule is restated i
 ## Vocabulary
 
 - **Authorized to communicate**: a user whose account is `active` (not `suspended`, not `self_deleted`),
-  whose profile is `approved`, and whose profile has `messaging_enabled = true`.
+  whose profile is `approved`, and whose profile has `messaging_enabled = true`. Other members can read
+  `messaging_enabled` on `GET /v1/profiles` and `GET /v1/profiles/:id` (`docs/profile-visibility-rules.md`) so the
+  interface can grey out sending, but that flag alone never authorizes a message: the API applies the full rule below.
 - **Active registration**: an `event_registrations` row with `status = 'registered'`. A `withdrawn` row grants nothing.
 - **Conversation**: exactly two distinct users, stored in canonical order (`participant_one_id < participant_two_id`),
   with a database `UNIQUE` on the pair (see `docs/data-model.md`).
