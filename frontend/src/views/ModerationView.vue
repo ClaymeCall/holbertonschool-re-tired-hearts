@@ -46,7 +46,7 @@ async function load() {
 
 function messageFor(error) {
   if (error.status === 409) return 'Action impossible dans l’état actuel (déjà traitée, ou le statut a changé). La liste est rechargée.'
-  if (error.status === 403) return 'Seuls les modérateurs peuvent effectuer cette action.'
+  if (error.status === 403) return 'Action refusée : vous ne pouvez pas modérer votre propre compte ni celui d’un autre modérateur.'
   if (error.status === 404) return 'Cette cible est introuvable.'
   return 'Une erreur est survenue. Réessayez plus tard.'
 }

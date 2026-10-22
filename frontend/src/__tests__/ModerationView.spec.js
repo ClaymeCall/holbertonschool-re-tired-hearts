@@ -109,6 +109,14 @@ describe('ModerationView', () => {
     expect(moderation.listProfilesByStatus).toHaveBeenCalledTimes(2)
   })
 
+  it('explique un refus (403) sans prétendre que la personne n\'est pas modératrice', async () => {
+    moderation.approveProfile.mockRejectedValue(new ApiError(403, 'x'))
+    await mountView()
+    await button('Approuver le profil').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('[role="alert"]').text()).toContain('ni celui d’un autre modérateur')
+  })
+
   it('propose de réessayer si le chargement échoue', async () => {
     moderation.listProfilesByStatus.mockRejectedValue(new Error('x'))
     await mountView()
