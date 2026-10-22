@@ -130,7 +130,6 @@ onMounted(load)
           v-model="form.approximateLocation"
           label="Ville ou secteur"
           hint="N’indiquez jamais d’adresse exacte."
-          autocomplete="address-level2"
           :error="errors.approximateLocation"
         />
         <FormField id="startsAt" v-model="form.startsAt" label="Date et heure" type="datetime-local" :error="errors.startsAt" />

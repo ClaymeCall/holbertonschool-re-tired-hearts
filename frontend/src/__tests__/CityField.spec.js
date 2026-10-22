@@ -93,6 +93,15 @@ describe('CityField', () => {
     expect(wrapper.text()).toContain('indisponibles')
   })
 
+  it('désactive l\'autocomplétion du navigateur et relie le message d\'indisponibilité au champ', async () => {
+    places.searchPlaces.mockResolvedValue({ available: false, suggestions: [] })
+    mountField()
+    expect(input().attributes('autocomplete')).toBe('off')
+    await type('ly')
+    expect(input().attributes('aria-describedby')).toContain('city-status')
+    expect(wrapper.get('#city-status').text()).toContain('indisponibles')
+  })
+
   it('ne présente pas de violation d\'accessibilité détectable', async () => {
     vi.useRealTimers()
     mountField()

@@ -8,7 +8,7 @@ const props = defineProps({
   modelValue: { type: String, default: '' },
   error: { type: String, default: '' },
   hint: { type: String, default: '' },
-  autocomplete: { type: String, default: 'address-level2' },
+  autocomplete: { type: String, default: 'off' }, // nos suggestions remplacent celles du navigateur
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -105,7 +105,7 @@ onBeforeUnmount(() => clearTimeout(timer))
       :value="modelValue"
       :autocomplete="autocomplete"
       :aria-invalid="error ? 'true' : 'false'"
-      :aria-describedby="[hint ? `${id}-hint` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined"
+      :aria-describedby="[hint ? `${id}-hint` : '', unavailable ? `${id}-status` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined"
       :class="fieldClasses"
       @input="onInput"
       @keydown="onKeydown"
@@ -133,7 +133,7 @@ onBeforeUnmount(() => clearTimeout(timer))
       </li>
     </ul>
     <p class="sr-only" role="status" aria-live="polite">{{ open ? `${suggestions.length} suggestions disponibles` : '' }}</p>
-    <p v-if="unavailable" class="mt-2 text-base text-muted">Les suggestions de villes sont indisponibles : saisissez votre ville à la main.</p>
+    <p v-if="unavailable" :id="`${id}-status`" class="mt-2 text-base text-muted">Les suggestions de villes sont indisponibles : saisissez votre ville à la main.</p>
     <p v-if="error" :id="`${id}-error`" class="mt-2 text-base font-semibold text-danger">{{ error }}</p>
   </div>
 </template>

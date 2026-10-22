@@ -90,7 +90,6 @@ onMounted(load)
         v-model="form.approximateLocation"
         label="Ville ou région"
         hint="N’indiquez jamais votre adresse exacte."
-        autocomplete="address-level2"
         :error="errors.approximateLocation"
       />
 
