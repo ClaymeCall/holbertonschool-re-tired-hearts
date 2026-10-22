@@ -1,7 +1,7 @@
 import { DataSource, In } from 'typeorm';
 import { Interest } from '../../interests/entities/interest.entity';
 import { Profile, ProfileModerationStatus } from '../../profiles/entities/profile.entity';
-import { SeedUsers } from './users.seed';
+import { DEMO_MEMBER_SEEDS, SeedUsers } from './users.seed';
 
 interface SeedProfileSpec {
   displayName: string;
@@ -13,7 +13,7 @@ interface SeedProfileSpec {
 
 // Keyed the same way as DEMO_MEMBER_SEEDS — the moderator has no profile (not required,
 // see docs/data-model.md: Profile is 1:1 with User but nothing forces one to exist).
-const DEMO_PROFILE_SEEDS: Record<'alice' | 'bob' | 'carol' | 'dave', SeedProfileSpec> = {
+const DEMO_PROFILE_SEEDS: Record<keyof typeof DEMO_MEMBER_SEEDS, SeedProfileSpec> = {
   alice: {
     displayName: 'Alice Moreau',
     bio: 'Retired teacher, organizes a weekend hike most months.',
@@ -41,6 +41,34 @@ const DEMO_PROFILE_SEEDS: Record<'alice' | 'bob' | 'carol' | 'dave', SeedProfile
     approximateLocation: 'Lyon',
     moderationStatus: ProfileModerationStatus.APPROVED,
     interestNames: ['Travel and discovery'],
+  },
+  emma: {
+    displayName: 'Emma Bernard',
+    bio: 'Bibliothécaire retraitée, organise des ateliers et des sorties culturelles.',
+    approximateLocation: 'Lyon',
+    moderationStatus: ProfileModerationStatus.APPROVED,
+    interestNames: ['Reading and book clubs', 'Cinema and theatre'],
+  },
+  farid: {
+    displayName: 'Farid Haddad',
+    bio: 'Nouveau à Lyon, cherche des compagnons de balade.',
+    approximateLocation: 'Lyon',
+    moderationStatus: ProfileModerationStatus.APPROVED,
+    interestNames: ['Walking and hiking', 'Photography'],
+  },
+  gaby: {
+    displayName: 'Gabrielle Roux',
+    bio: 'Nouvelle inscrite : son profil attend la validation d’un modérateur.',
+    approximateLocation: 'Marseille',
+    moderationStatus: ProfileModerationStatus.PENDING,
+    interestNames: ['Cooking'],
+  },
+  hugo: {
+    displayName: 'Hugo Martin',
+    bio: 'Profil bloqué, pour montrer la modération et le déblocage.',
+    approximateLocation: 'Toulouse',
+    moderationStatus: ProfileModerationStatus.BLOCKED,
+    interestNames: ['Music and singing'],
   },
 };
 
