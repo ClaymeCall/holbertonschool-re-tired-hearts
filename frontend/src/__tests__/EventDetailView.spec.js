@@ -50,6 +50,14 @@ describe('EventDetailView', () => {
   })
   afterEach(() => wrapper?.unmount())
 
+  it('tient sur une seule page : photo à côté des informations, description défilante plutôt que page longue', async () => {
+    await mountView()
+    const article = wrapper.get('article')
+    expect(article.classes()).toContain('lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]')
+    expect(article.find('img').exists()).toBe(true)
+    expect(article.get('p.whitespace-pre-line').classes()).toEqual(expect.arrayContaining(['max-h-36', 'overflow-y-auto']))
+  })
+
   it('affiche le détail de la sortie', async () => {
     await mountView()
     expect(wrapper.get('h1').text()).toBe('Randonnée du dimanche')
