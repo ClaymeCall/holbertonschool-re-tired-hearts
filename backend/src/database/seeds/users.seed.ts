@@ -19,15 +19,24 @@ export const MODERATOR_SEED: SeedUserSpec = {
   isAdmin: true,
 };
 
-// Covers the three member scenarios the Phase 1/4 acceptance bars need to demo against:
-// approved + organizer (alice), approved + plain member (bob), pending (carol, still in
-// the moderation queue), and approved-but-later-suspended (dave, seeded further in
-// raw-schema.seed.ts to demonstrate the account-restriction + cascade behavior).
-export const DEMO_MEMBER_SEEDS: Record<'alice' | 'bob' | 'carol' | 'dave', SeedUserSpec> = {
+// Covers the member scenarios the demonstrations need: approved + organizer (alice, emma),
+// approved + plain member (bob), approved with no conversation yet (farid), pending (carol,
+// gaby: the moderation queue), blocked (hugo: the "unblock" demonstration) and
+// approved-but-later-suspended (dave, seeded further in raw-schema.seed.ts to demonstrate the
+// account-restriction + cascade behavior). The events, registrations and conversations that go
+// with them are in demo-extra.seed.ts.
+export const DEMO_MEMBER_SEEDS: Record<
+  'alice' | 'bob' | 'carol' | 'dave' | 'emma' | 'farid' | 'gaby' | 'hugo',
+  SeedUserSpec
+> = {
   alice: { email: 'alice@retired-hearts.demo', password: 'DemoMember123!' },
   bob: { email: 'bob@retired-hearts.demo', password: 'DemoMember123!' },
   carol: { email: 'carol@retired-hearts.demo', password: 'DemoMember123!' },
   dave: { email: 'dave@retired-hearts.demo', password: 'DemoMember123!' },
+  emma: { email: 'emma@retired-hearts.demo', password: 'DemoMember123!' },
+  farid: { email: 'farid@retired-hearts.demo', password: 'DemoMember123!' },
+  gaby: { email: 'gaby@retired-hearts.demo', password: 'DemoMember123!' },
+  hugo: { email: 'hugo@retired-hearts.demo', password: 'DemoMember123!' },
 };
 
 export type SeedUsers = Record<'moderator' | keyof typeof DEMO_MEMBER_SEEDS, User>;

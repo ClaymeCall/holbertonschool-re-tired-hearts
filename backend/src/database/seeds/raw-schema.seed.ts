@@ -14,7 +14,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const futureDate = (days: number) => new Date(Date.now() + days * DAY_MS).toISOString();
 const pastDate = (days: number) => new Date(Date.now() - days * DAY_MS).toISOString();
 
-interface EventSpec {
+export interface EventSpec {
   organizerId: number;
   interestName: string;
   title: string;
@@ -72,7 +72,7 @@ export async function seedEvents(dataSource: DataSource, users: SeedUsers): Prom
   };
 }
 
-async function findOrCreateEvent(dataSource: DataSource, spec: EventSpec): Promise<number> {
+export async function findOrCreateEvent(dataSource: DataSource, spec: EventSpec): Promise<number> {
   const existing = await dataSource.query(
     'SELECT id FROM events WHERE organizer_id = $1 AND title = $2',
     [spec.organizerId, spec.title],
@@ -114,7 +114,7 @@ export async function seedRegistrations(dataSource: DataSource, users: SeedUsers
   await findOrCreateRegistration(dataSource, eventIds.completed, users.alice.id);
 }
 
-async function findOrCreateRegistration(dataSource: DataSource, eventId: number, userId: number): Promise<void> {
+export async function findOrCreateRegistration(dataSource: DataSource, eventId: number, userId: number): Promise<void> {
   const existing = await dataSource.query(
     'SELECT id FROM event_registrations WHERE event_id = $1 AND user_id = $2',
     [eventId, userId],
@@ -169,7 +169,7 @@ export async function seedConversationAndMessages(dataSource: DataSource, users:
   }
 }
 
-interface ModerationActionSpec {
+export interface ModerationActionSpec {
   moderatorId: number;
   targetType: 'profile' | 'user_account' | 'event';
   targetId: number;
@@ -177,7 +177,7 @@ interface ModerationActionSpec {
   reason: string | null;
 }
 
-async function findOrCreateModerationAction(dataSource: DataSource, spec: ModerationActionSpec): Promise<void> {
+export async function findOrCreateModerationAction(dataSource: DataSource, spec: ModerationActionSpec): Promise<void> {
   const existing = await dataSource.query(
     'SELECT id FROM moderation_actions WHERE target_type = $1 AND target_id = $2 AND action = $3',
     [spec.targetType, spec.targetId, spec.action],

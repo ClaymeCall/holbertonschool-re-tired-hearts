@@ -1,4 +1,5 @@
 import dataSource from './data-source';
+import { seedDemoExtras } from './seeds/demo-extra.seed';
 import { seedProfiles } from './seeds/profiles.seed';
 import {
   seedConversationAndMessages,
@@ -34,6 +35,9 @@ async function run(): Promise<void> {
 
     console.log('Seeding moderation actions (and the suspended-account demo)...');
     await seedModerationActions(dataSource, users, profiles);
+
+    console.log('Seeding the extra demo data (more events, a full event, a second conversation, a blocked profile)...');
+    await seedDemoExtras(dataSource, users);
 
     console.log('\nSeed complete. Demo logins (password in parentheses):');
     console.log(`  moderator: ${MODERATOR_SEED.email} (${MODERATOR_SEED.password})`);
