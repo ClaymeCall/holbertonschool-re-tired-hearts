@@ -16,6 +16,7 @@ const saved = ref([])
 const conversations = ref([])
 const loading = ref(true)
 const error = ref('')
+const pendingApproval = ref(false)
 
 // Mes contacts = profils enregistrés + personnes qui m'ont écrit sans être enregistrées.
 const rows = computed(() => {
@@ -30,11 +31,18 @@ const rows = computed(() => {
 async function load({ quiet = false } = {}) {
   if (!quiet) loading.value = true
   error.value = ''
+  pendingApproval.value = false
   try {
     ;[saved.value, conversations.value] = await Promise.all([listContacts(), listConversations()])
     unreadStore.refresh()
-  } catch {
-    if (!quiet) error.value = 'Impossible de charger vos contacts pour le moment.'
+  } catch (failure) {
+    // Un profil en attente reste refusé (403) à chaque rafraîchissement : le message ne doit pas disparaître.
+    if (failure.status === 403) {
+      pendingApproval.value = true
+      error.value = 'Vos contacts seront disponibles quand un modérateur aura approuvé votre profil.'
+    } else if (!quiet) {
+      error.value = 'Impossible de charger vos contacts pour le moment.'
+    }
   } finally {
     loading.value = false
   }
@@ -53,7 +61,7 @@ onMounted(load)
 
     <div v-else-if="error" class="mt-6">
       <AlertMessage>{{ error }}</AlertMessage>
-      <div class="mt-4"><BaseButton variant="secondary" @click="load">Réessayer</BaseButton></div>
+      <div v-if="!pendingApproval" class="mt-4"><BaseButton variant="secondary" @click="load">Réessayer</BaseButton></div>
     </div>
 
     <p v-else-if="rows.length === 0" class="mt-6 rounded-lg bg-mist p-6 text-lg text-ink">
