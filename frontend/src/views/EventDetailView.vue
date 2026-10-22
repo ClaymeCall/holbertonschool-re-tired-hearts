@@ -109,82 +109,86 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-    <router-link :to="{ name: 'events' }" class="inline-flex min-h-12 items-center rounded-lg text-lg font-bold text-brand underline">
+  <section class="mx-auto max-w-6xl px-4 py-4 sm:px-6">
+    <router-link :to="{ name: 'events' }" class="inline-flex min-h-10 items-center rounded-lg text-base font-bold text-brand underline">
       ← Toutes les sorties
     </router-link>
 
-    <p v-if="loading" role="status" class="mt-6 text-xl text-muted">Chargement de la sortie…</p>
+    <p v-if="loading" role="status" class="mt-4 text-lg text-muted">Chargement de la sortie…</p>
 
-    <div v-else-if="loadError" class="mt-6">
+    <div v-else-if="loadError" class="mt-4">
       <AlertMessage>{{ loadError }}</AlertMessage>
     </div>
 
-    <article v-else class="mt-4 overflow-hidden rounded-lg border border-line bg-white p-6 sm:p-10">
+    <!-- Une seule page, sans défilement : photo à gauche, informations et actions à droite. -->
+    <article v-else class="mt-2 grid overflow-hidden rounded-lg border border-line bg-white lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <img
         :src="photo.src"
         alt=""
         width="640"
         height="427"
         decoding="async"
-        class="-mx-6 -mt-6 mb-6 h-56 w-[calc(100%+3rem)] max-w-none object-cover sm:-mx-10 sm:-mt-10 sm:w-[calc(100%+5rem)]"
+        class="h-44 w-full object-cover lg:h-full"
         :class="photo.position"
       />
-      <div class="flex flex-wrap items-center gap-3">
-        <EventStatusBadge :status="event.status" />
-        <p v-if="event.mainInterest?.name" class="text-lg font-bold text-accent">{{ event.mainInterest.name }}</p>
-      </div>
-      <h1 class="mt-3 text-4xl font-extrabold leading-tight tracking-tight text-ink">{{ event.title }}</h1>
 
-      <dl class="mt-6 grid gap-4 sm:grid-cols-2">
-        <div>
-          <dt class="text-base font-bold text-muted">Date</dt>
-          <dd class="text-xl font-semibold text-ink first-letter:uppercase">{{ formatEventDate(event.startsAt) }}</dd>
+      <div class="flex min-w-0 flex-col p-5 sm:p-6">
+        <div class="flex flex-wrap items-center gap-3">
+          <EventStatusBadge :status="event.status" />
+          <p v-if="event.mainInterest?.name" class="text-base font-bold text-accent">{{ event.mainInterest.name }}</p>
         </div>
-        <div>
-          <dt class="text-base font-bold text-muted">Lieu (approximatif)</dt>
-          <dd class="text-xl font-semibold text-ink">{{ event.approximateLocation }}</dd>
+        <h1 class="mt-2 text-3xl font-extrabold leading-tight tracking-tight text-ink">{{ event.title }}</h1>
+
+        <dl class="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div>
+            <dt class="text-sm font-bold text-muted">Date</dt>
+            <dd class="text-base font-semibold text-ink first-letter:uppercase">{{ formatEventDate(event.startsAt) }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-bold text-muted">Lieu (approximatif)</dt>
+            <dd class="text-base font-semibold text-ink">{{ event.approximateLocation }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-bold text-muted">Organisateur</dt>
+            <dd class="text-base font-semibold text-ink">{{ event.organizer.displayName }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-bold text-muted">Places</dt>
+            <dd class="text-base font-semibold text-ink">
+              {{ event.registeredCount }} inscrit(s) sur {{ event.capacity }} · {{ availablePlaces(event) }} restante(s)
+            </dd>
+          </div>
+        </dl>
+
+        <p class="mt-4 max-h-36 overflow-y-auto whitespace-pre-line pr-1 text-base text-ink">{{ event.description }}</p>
+
+        <div class="mt-4" aria-live="polite">
+          <AlertMessage v-if="feedback.text" :variant="feedback.type === 'success' ? 'success' : 'error'">{{ feedback.text }}</AlertMessage>
         </div>
-        <div>
-          <dt class="text-base font-bold text-muted">Organisateur</dt>
-          <dd class="text-xl font-semibold text-ink">{{ event.organizer.displayName }}</dd>
-        </div>
-        <div>
-          <dt class="text-base font-bold text-muted">Places</dt>
-          <dd class="text-xl font-semibold text-ink">
-            {{ event.registeredCount }} inscrit(s) sur {{ event.capacity }} · {{ availablePlaces(event) }} restante(s)
-          </dd>
-        </div>
-      </dl>
 
-      <p class="mt-6 whitespace-pre-line text-lg text-ink">{{ event.description }}</p>
-
-      <div class="mt-8 space-y-4" aria-live="polite">
-        <AlertMessage v-if="feedback.text" :variant="feedback.type === 'success' ? 'success' : 'error'">{{ feedback.text }}</AlertMessage>
-      </div>
-
-      <div v-if="!event.isOrganizer" class="mt-6 flex flex-wrap items-center gap-4">
-        <BaseButton v-if="canWithdraw" variant="secondary" :loading="working" @click="withdraw">Me désinscrire</BaseButton>
-        <BaseButton v-else-if="registration.allowed && !registered" :loading="working" @click="register">Je m’inscris</BaseButton>
-        <p v-else class="text-lg font-bold text-ink">{{ registration.reason }}</p>
-        <BaseButton variant="secondary" :to="{ name: 'person', params: { userId: event.organizer.id }, query: { organizerOf: event.id } }">
-          Contacter l’organisateur
-        </BaseButton>
-      </div>
-
-      <div v-else class="mt-8 border-t border-mist-deep pt-6">
-        <h2 class="text-xl font-extrabold text-ink">Vous organisez cette sortie</h2>
-        <p v-if="event.status === 'draft' && started" class="mt-2 text-lg text-ink">
-          La date de début est passée : modifiez la date pour pouvoir publier cette sortie.
-        </p>
-        <div class="mt-4 flex flex-wrap gap-3">
-          <BaseButton v-if="event.status === 'draft' && !started" :loading="working" @click="publish">Publier la sortie</BaseButton>
-          <BaseButton v-if="event.status === 'draft' || event.status === 'published'" :to="{ name: 'event-edit', params: { id: event.id } }" variant="secondary">
-            Modifier
+        <div v-if="!event.isOrganizer" class="mt-auto flex flex-wrap items-center gap-3 pt-4">
+          <BaseButton v-if="canWithdraw" small variant="secondary" :loading="working" @click="withdraw">Me désinscrire</BaseButton>
+          <BaseButton v-else-if="registration.allowed && !registered" small :loading="working" @click="register">Je m’inscris</BaseButton>
+          <p v-else class="text-base font-bold text-ink">{{ registration.reason }}</p>
+          <BaseButton small variant="secondary" :to="{ name: 'person', params: { userId: event.organizer.id }, query: { organizerOf: event.id } }">
+            Contacter l’organisateur
           </BaseButton>
-          <BaseButton v-if="event.status === 'published' && started" variant="secondary" @click="pending = 'complete'">Marquer comme terminée</BaseButton>
-          <BaseButton v-if="event.status === 'published'" variant="secondary" @click="pending = 'cancel'">Annuler la sortie</BaseButton>
-          <BaseButton v-if="canDelete" variant="secondary" @click="pending = 'delete'">Supprimer le brouillon</BaseButton>
+        </div>
+
+        <div v-else class="mt-auto border-t border-mist-deep pt-4">
+          <h2 class="text-lg font-extrabold text-ink">Vous organisez cette sortie</h2>
+          <p v-if="event.status === 'draft' && started" class="mt-1 text-base text-ink">
+            La date de début est passée : modifiez la date pour pouvoir publier cette sortie.
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <BaseButton v-if="event.status === 'draft' && !started" small :loading="working" @click="publish">Publier la sortie</BaseButton>
+            <BaseButton v-if="event.status === 'draft' || event.status === 'published'" small :to="{ name: 'event-edit', params: { id: event.id } }" variant="secondary">
+              Modifier
+            </BaseButton>
+            <BaseButton v-if="event.status === 'published' && started" small variant="secondary" @click="pending = 'complete'">Marquer comme terminée</BaseButton>
+            <BaseButton v-if="event.status === 'published'" small variant="secondary" @click="pending = 'cancel'">Annuler la sortie</BaseButton>
+            <BaseButton v-if="canDelete" small variant="secondary" @click="pending = 'delete'">Supprimer le brouillon</BaseButton>
+          </div>
         </div>
       </div>
     </article>
