@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
 import CityField from '../components/CityField.vue'
+import EventCard from '../components/EventCard.vue'
 import FormField from '../components/FormField.vue'
 import SelectField from '../components/SelectField.vue'
 import { createEvent, getEvent, listInterests, updateEvent } from '../services/events'
@@ -96,55 +97,102 @@ async function submit() {
   }
 }
 
+// Aperçu : la carte telle qu'elle apparaîtra dans la liste des sorties, mise à jour pendant la saisie.
+const preview = computed(() => {
+  const interest = interests.value.find((item) => String(item.value) === String(form.mainInterestId))
+  const fallbackDate = new Date()
+  fallbackDate.setDate(fallbackDate.getDate() + 7)
+  fallbackDate.setHours(10, 0, 0, 0)
+  const startsAt = form.startsAt ? new Date(form.startsAt) : fallbackDate
+  return {
+    id: 0,
+    title: form.title.trim() || 'Titre de la sortie',
+    approximateLocation: form.approximateLocation.trim() || 'Ville',
+    startsAt: (Number.isNaN(startsAt.getTime()) ? fallbackDate : startsAt).toISOString(),
+    capacity: Number(form.capacity) > 0 ? Number(form.capacity) : 10,
+    registeredCount: editing.value ? registeredCount.value : 0,
+    status: 'published',
+    mainInterest: interest ? { id: interest.value, name: interest.label } : null,
+    myRegistration: null,
+  }
+})
+
 onMounted(load)
 </script>
 
 <template>
-  <section class="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-    <router-link :to="{ name: 'events' }" class="inline-flex min-h-12 items-center rounded-lg text-lg font-bold text-brand underline">
-      ← Toutes les sorties
-    </router-link>
+  <section class="mx-auto max-w-6xl px-4 py-5 sm:px-6">
+    <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-1 border-b-2 border-ink pb-3">
+      <div>
+        <router-link :to="{ name: 'events' }" class="rounded text-sm font-bold text-brand underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand">
+          ← Toutes les sorties
+        </router-link>
+        <h1 class="mt-1 text-3xl font-extrabold tracking-tight text-ink">{{ editing ? 'Modifier la sortie' : 'Proposer une sortie' }}</h1>
+      </div>
+      <p class="text-sm text-muted">
+        {{ editing ? 'Les inscrits voient vos changements.' : 'Enregistrée en brouillon : vous la publiez quand vous êtes prêt(e).' }}
+      </p>
+    </div>
 
-    <div class="mt-4 rounded-3xl border border-mist-deep bg-white p-6 sm:p-10">
-      <h1 class="text-4xl font-extrabold tracking-tight text-ink">{{ editing ? 'Modifier la sortie' : 'Proposer une sortie' }}</h1>
-      <p v-if="!editing" class="mt-2 text-lg text-muted">La sortie est d’abord enregistrée en brouillon : vous la publiez quand vous êtes prêt(e).</p>
+    <p v-if="loading" role="status" class="mt-6 text-lg text-muted">Chargement…</p>
+    <div v-else-if="loadError" class="mt-6"><AlertMessage>{{ loadError }}</AlertMessage></div>
 
-      <p v-if="loading" role="status" class="mt-6 text-lg text-muted">Chargement…</p>
-      <div v-else-if="loadError" class="mt-6"><AlertMessage>{{ loadError }}</AlertMessage></div>
+    <form v-else class="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_17rem]" novalidate @submit.prevent="submit">
+      <div class="grid content-start gap-x-5 gap-y-4 sm:grid-cols-2">
+        <div v-if="formError" class="sm:col-span-2"><AlertMessage>{{ formError }}</AlertMessage></div>
 
-      <form v-else class="mt-6 space-y-5" novalidate @submit.prevent="submit">
-        <AlertMessage v-if="formError">{{ formError }}</AlertMessage>
-
-        <FormField id="title" v-model="form.title" label="Titre" :error="errors.title" />
-        <FormField id="description" v-model="form.description" label="Description" multiline :error="errors.description" />
+        <div class="sm:col-span-2">
+          <FormField id="title" v-model="form.title" label="Titre" compact :error="errors.title" />
+        </div>
         <SelectField
           id="mainInterestId"
           v-model="form.mainInterestId"
           label="Centre d’intérêt principal"
           :options="interests"
           placeholder="Choisir…"
+          compact
           :error="errors.mainInterestId"
         />
         <CityField
           id="approximateLocation"
           v-model="form.approximateLocation"
           label="Ville ou secteur"
-          hint="N’indiquez jamais d’adresse exacte."
+          hint="Jamais d’adresse exacte."
+          compact
           :error="errors.approximateLocation"
         />
-        <FormField id="startsAt" v-model="form.startsAt" label="Date et heure" type="datetime-local" :error="errors.startsAt" />
+        <FormField id="startsAt" v-model="form.startsAt" label="Date et heure" type="datetime-local" compact :error="errors.startsAt" />
         <FormField
           id="capacity"
           v-model="form.capacity"
           label="Nombre de places"
           type="number"
+          compact
           :min="editing ? Math.max(registeredCount, 1) : 1"
           :hint="editing && registeredCount ? `${registeredCount} inscrit(s) pour le moment.` : ''"
           :error="errors.capacity"
         />
+        <div class="sm:col-span-2">
+          <FormField id="description" v-model="form.description" label="Description" multiline compact :rows="4" :error="errors.description" />
+        </div>
 
-        <BaseButton type="submit" block :loading="saving">{{ saving ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer le brouillon' }}</BaseButton>
-      </form>
-    </div>
+        <div class="flex items-center justify-end gap-4 border-t border-mist-deep pt-4 sm:col-span-2">
+          <router-link :to="{ name: editing ? 'my-events' : 'events' }" class="rounded px-2 py-1 text-base font-bold text-ink underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand">
+            Annuler
+          </router-link>
+          <BaseButton small type="submit" :loading="saving">{{ saving ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer le brouillon' }}</BaseButton>
+        </div>
+      </div>
+
+      <aside class="hidden lg:block" aria-label="Aperçu de la sortie">
+        <p class="text-sm font-bold uppercase tracking-wide text-muted">Aperçu dans la liste</p>
+        <div class="pointer-events-none mt-2 h-[21rem] select-none" aria-hidden="true" inert>
+          <EventCard :event="preview" />
+        </div>
+        <p class="mt-3 text-sm text-muted">
+          {{ editing ? 'Voici l’aspect de la carte dans la liste des sorties.' : 'Tant qu’elle est en brouillon, seul vous la voyez.' }}
+        </p>
+      </aside>
+    </form>
   </section>
 </template>
