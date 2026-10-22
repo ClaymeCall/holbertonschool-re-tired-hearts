@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
 import ChatPanel from '../components/ChatPanel.vue'
-import PersonAvatar from '../components/PersonAvatar.vue'
+import PersonPortrait from '../components/PersonPortrait.vue'
 import { getPerson, removeContact, saveContact } from '../services/people'
 
 const route = useRoute()
@@ -70,8 +70,8 @@ onMounted(load)
 
     <div v-else class="mt-4 grid gap-6 lg:grid-cols-12">
       <article class="rounded-lg border border-line bg-white p-6 sm:p-8 lg:col-span-5">
-        <PersonAvatar :name="person.displayName" size="lg" />
-        <h1 class="mt-4 text-4xl font-extrabold leading-tight tracking-tight text-ink">{{ person.displayName }}</h1>
+        <PersonPortrait :name="person.displayName" :person-id="person.id" :photo-url="person.photoUrl" class="h-64 rounded-lg" />
+        <h1 class="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-ink">{{ person.displayName }}</h1>
         <p class="mt-1 text-xl text-muted">{{ person.approximateLocation }}</p>
 
         <p v-if="person.bio" class="mt-5 whitespace-pre-line text-lg text-ink">{{ person.bio }}</p>

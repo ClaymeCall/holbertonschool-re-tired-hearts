@@ -61,6 +61,11 @@ describe('PersonView', () => {
     expect(wrapper.text()).toContain('Balade à vélo')
   })
 
+  it('montre la photo de la personne en haut de son profil', async () => {
+    await mountAt('/people/2')
+    expect(wrapper.get('article img').exists()).toBe(true)
+  })
+
   it('affiche le profil à gauche et la discussion avec la personne à droite', async () => {
     await mountAt('/people/103')
     expect(wrapper.get('article').text()).toContain('Henri')

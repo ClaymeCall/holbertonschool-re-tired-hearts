@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
-import PersonAvatar from '../components/PersonAvatar.vue'
+import PersonPortrait from '../components/PersonPortrait.vue'
 import UnreadBadge from '../components/UnreadBadge.vue'
 import { usePolling } from '../composables/usePolling'
 import { listConversations } from '../services/conversations'
@@ -72,7 +72,7 @@ onMounted(load)
     <ul v-else class="mt-6 divide-y divide-mist-deep rounded-lg border border-line bg-white">
       <li v-for="person in rows" :key="person.id" class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-4">
-          <PersonAvatar :name="person.displayName" />
+          <PersonPortrait :name="person.displayName" :person-id="person.id" class="h-16 w-16 shrink-0 rounded-full" />
           <div>
             <p class="flex items-center gap-3 text-xl font-bold text-ink">
               {{ person.displayName }}
