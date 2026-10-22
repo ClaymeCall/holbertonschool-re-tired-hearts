@@ -51,7 +51,7 @@ routes.push(
   { path: '/members', name: 'members', component: MembersView, meta: privateMeta('Les membres') },
   { path: '/contacts', name: 'contacts', component: ContactsView, meta: privateMeta('Mes contacts') },
   { path: '/my-events', name: 'my-events', component: MyEventsView, meta: privateMeta('Mes sorties') },
-  { path: '/moderation', name: 'moderation', component: ModerationView, meta: { ...privateMeta('Modération'), requiresModerator: true } },
+  { path: '/moderation', name: 'moderation', component: ModerationView, meta: { ...privateMeta('Modération'), requiresModerator: true, hideTextZoom: true } },
 )
 
 const router = createRouter({

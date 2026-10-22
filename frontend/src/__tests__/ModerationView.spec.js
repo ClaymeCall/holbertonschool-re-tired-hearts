@@ -91,6 +91,48 @@ describe('ModerationView', () => {
     expect(moderation.reactivateAccount).toHaveBeenCalledWith(101)
   })
 
+  it('filtre la liste par nom ou ville, sans tenir compte des accents ni de la casse', async () => {
+    moderation.listProfilesByStatus.mockResolvedValue([profile(1, 'Éloïse', { approximateLocation: 'Lyon' }), profile(2, 'Paul', { approximateLocation: 'Nantes' })])
+    await mountView()
+    expect(wrapper.text()).toContain('Éloïse')
+    await wrapper.get('#mod-search').setValue('eloise')
+    expect(wrapper.text()).toContain('Éloïse')
+    expect(wrapper.text()).not.toContain('Paul')
+    expect(wrapper.text()).toContain('1 résultat(s)')
+    await wrapper.get('#mod-search').setValue('nantes')
+    expect(wrapper.text()).toContain('Paul')
+    expect(wrapper.text()).not.toContain('Éloïse')
+    await wrapper.get('#mod-search').setValue('zzz')
+    expect(wrapper.text()).toContain('Aucun résultat pour « zzz »')
+  })
+
+  it('cherche une sortie par titre, ville ou organisateur et vide la recherche en changeant d\'onglet', async () => {
+    await mountView()
+    await tab('Sorties').trigger('click')
+    await flushPromises()
+    await wrapper.get('#mod-search').setValue('colette')
+    expect(wrapper.text()).toContain('Randonnée')
+    await wrapper.get('#mod-search').setValue('inconnu')
+    expect(wrapper.text()).toContain('Aucun résultat')
+    await tab('Historique').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('#mod-search').element.value).toBe('')
+  })
+
+  it('charge toutes les pages de sorties pour que la recherche les couvre toutes', async () => {
+    events.listEvents.mockImplementation(async ({ page }) => ({
+      items: [{ ...event, id: page, title: `Sortie ${page}` }],
+      total: 3,
+      page,
+      limit: 50,
+    }))
+    await mountView()
+    await tab('Sorties').trigger('click')
+    await flushPromises()
+    expect(events.listEvents).toHaveBeenCalledTimes(3)
+    expect(wrapper.text()).toContain('Sortie 3')
+  })
+
   it('débloque un profil bloqué', async () => {
     await mountView()
     await tab('bloqués').trigger('click')

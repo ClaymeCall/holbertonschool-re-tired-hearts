@@ -8,10 +8,13 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   block: { type: Boolean, default: false },
+  small: { type: Boolean, default: false },
 })
 
 const classes = computed(() => [
-  'group inline-flex min-h-14 items-center justify-center gap-3 rounded-b-md rounded-t-[1.75rem] px-8 py-3 text-center text-lg font-bold transition-colors motion-reduce:transition-none disabled:opacity-70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2',
+  props.small
+    ? 'group inline-flex min-h-10 items-center justify-center gap-2 rounded-b-md rounded-t-2xl px-5 py-2 text-center text-base font-bold transition-colors motion-reduce:transition-none disabled:opacity-70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2'
+    : 'group inline-flex min-h-14 items-center justify-center gap-3 rounded-b-md rounded-t-[1.75rem] px-8 py-3 text-center text-lg font-bold transition-colors motion-reduce:transition-none disabled:opacity-70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2',
   props.block ? 'w-full' : '',
   props.variant === 'secondary'
     ? 'border-2 border-ink bg-transparent text-ink hover:bg-ink hover:text-paper'
