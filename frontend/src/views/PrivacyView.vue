@@ -31,8 +31,8 @@
       <li><strong>Jamais demandée :</strong> votre adresse exacte. N’indiquez qu’une ville ou une région.</li>
     </ul>
     <p class="mt-3 text-lg text-ink">
-      Vos messages ne sont lisibles que par vous et la personne à qui vous écrivez. Les modérateurs ne peuvent pas lire les conversations.
-      La liste des personnes présentes à une sortie n’est donnée qu’à l’organisateur et aux inscrits.
+      Vos messages ne sont lisibles que par vous et la personne à qui vous écrivez. Dans l’application, les modérateurs ne peuvent pas lire les conversations.
+      Dans l’interface, la liste des personnes présentes à une sortie n’est montrée qu’à l’organisateur et aux inscrits.
     </p>
 
     <h2 id="conserve" class="mt-10 text-2xl font-extrabold text-ink">Ce que nous conservons</h2>
@@ -46,7 +46,8 @@
     <h2 id="cookies" class="mt-10 text-2xl font-extrabold text-ink">Cookies</h2>
     <p class="mt-2 text-lg text-ink">
       Nous utilisons un seul cookie, indispensable : il garde votre connexion ouverte et ne peut pas être lu par les scripts de la page.
-      Il n’y a ni publicité, ni suivi de votre navigation. Le réglage de la taille du texte reste dans votre navigateur.
+      Il n’y a ni publicité, ni suivi de votre navigation. Deux réglages restent uniquement dans votre navigateur, pas sur nos serveurs :
+      la taille du texte, et vos contacts enregistrés (séparés pour chaque compte).
     </p>
 
     <h2 id="externe" class="mt-10 text-2xl font-extrabold text-ink">Service externe : suggestions de villes</h2>

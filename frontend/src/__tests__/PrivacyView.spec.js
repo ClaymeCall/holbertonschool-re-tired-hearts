@@ -24,7 +24,9 @@ describe('PrivacyView', () => {
     expect(text).toContain('Mentions légales et confidentialité')
     expect(text).toContain('Jamais visible des autres')
     expect(text).toContain('geo.api.gouv.fr')
-    expect(text).toContain('Les modérateurs ne peuvent pas lire les conversations')
+    expect(text).toContain('Dans l’application, les modérateurs ne peuvent pas lire les conversations')
+    expect(text).toContain('vos contacts enregistrés')
+    expect(text).toContain('Dans l’interface, la liste des personnes présentes')
     wrapper.unmount()
   })
 
