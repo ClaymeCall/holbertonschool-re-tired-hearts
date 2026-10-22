@@ -9,7 +9,7 @@ import * as moderation from '../services/moderation'
 vi.mock('../services/events')
 vi.mock('../services/moderation')
 
-const profile = (id, name, extra = {}) => ({ id, displayName: name, approximateLocation: 'Lyon', bio: null, ...extra })
+const profile = (id, name, extra = {}) => ({ id, userId: id + 100, accountStatus: 'active', displayName: name, approximateLocation: 'Lyon', bio: null, ...extra })
 const event = { id: 5, title: 'Randonnée', startsAt: '2026-11-02T14:00:00.000Z', approximateLocation: 'Lyon', registeredCount: 4, organizer: { id: 2, displayName: 'Colette' } }
 
 let wrapper
@@ -32,7 +32,7 @@ describe('ModerationView', () => {
       { id: 1, moderatorId: 9, targetType: 'profile', targetId: 1, action: 'approve_profile', reason: 'ok', createdAt: '2026-10-21T10:00:00.000Z' },
     ])
     events.listEvents.mockResolvedValue({ items: [event], total: 1, page: 1, limit: 50 })
-    for (const name of ['approveProfile', 'blockProfile', 'unblockProfile', 'cancelEventAsModerator']) {
+    for (const name of ['approveProfile', 'blockProfile', 'unblockProfile', 'suspendAccount', 'reactivateAccount', 'cancelEventAsModerator']) {
       moderation[name].mockResolvedValue({})
     }
   })
@@ -69,6 +69,26 @@ describe('ModerationView', () => {
     await flushPromises()
     expect(moderation.blockProfile).not.toHaveBeenCalled()
     expect(dialog()).toBeNull()
+  })
+
+  it('suspend un compte actif avec l\'id du compte (pas celui du profil), après confirmation', async () => {
+    await mountView()
+    expect(button('Réactiver le compte')).toBeUndefined()
+    await button('Suspendre le compte').trigger('click')
+    expect(dialog().textContent).toContain('Suspendre le compte de Jeanne ?')
+    confirmButton('Oui, suspendre le compte').click()
+    await flushPromises()
+    expect(moderation.suspendAccount).toHaveBeenCalledWith(101)
+  })
+
+  it('propose seulement de réactiver un compte suspendu', async () => {
+    moderation.listProfilesByStatus.mockResolvedValue([profile(1, 'Jeanne', { accountStatus: 'suspended' })])
+    await mountView()
+    expect(wrapper.text()).toContain('Compte suspendu')
+    expect(button('Suspendre le compte')).toBeUndefined()
+    await button('Réactiver le compte').trigger('click')
+    await flushPromises()
+    expect(moderation.reactivateAccount).toHaveBeenCalledWith(101)
   })
 
   it('débloque un profil bloqué', async () => {

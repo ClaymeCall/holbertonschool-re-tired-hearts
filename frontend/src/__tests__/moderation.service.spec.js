@@ -24,6 +24,8 @@ describe('service de modération (routes /v1/moderation)', () => {
       [() => moderation.approveProfile(3), '/profiles/3/approve'],
       [() => moderation.blockProfile(3), '/profiles/3/block'],
       [() => moderation.unblockProfile(3), '/profiles/3/unblock'],
+      [() => moderation.suspendAccount(8), '/users/8/suspend'],
+      [() => moderation.reactivateAccount(8), '/users/8/reactivate'],
       [() => moderation.cancelEventAsModerator(5), '/events/5/cancel'],
     ]) {
       const fetchMock = stubFetch()

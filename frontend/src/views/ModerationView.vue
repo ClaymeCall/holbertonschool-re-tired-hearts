@@ -66,6 +66,7 @@ async function run(action, successText) {
 }
 
 const approve = (profile) => run(() => moderation.approveProfile(profile.id), `Le profil de ${profile.displayName} est approuvé.`)
+const reactivate = (profile) => run(() => moderation.reactivateAccount(profile.userId), `Le compte de ${profile.displayName} est réactivé.`)
 const unblock = (profile) => run(() => moderation.unblockProfile(profile.id), `Le profil de ${profile.displayName} est débloqué.`)
 
 // Les actions destructrices nomment toujours leur cible et demandent une confirmation.
@@ -75,6 +76,12 @@ const confirmTexts = {
     message: (target) => `Le profil de ${target.displayName} (${target.approximateLocation}) ne sera plus visible des autres membres. Vous pourrez le débloquer ensuite.`,
     label: 'Oui, bloquer le profil',
     run: (target) => run(() => moderation.blockProfile(target.id), `Le profil de ${target.displayName} est bloqué.`),
+  },
+  suspend: {
+    title: (target) => `Suspendre le compte de ${target.displayName} ?`,
+    message: (target) => `${target.displayName} ne pourra plus se connecter ni utiliser le service tant que son compte est suspendu. Vous pourrez le réactiver ensuite.`,
+    label: 'Oui, suspendre le compte',
+    run: (target) => run(() => moderation.suspendAccount(target.userId), `Le compte de ${target.displayName} est suspendu.`),
   },
   cancel: {
     title: (target) => `Annuler la sortie « ${target.title} » ?`,
@@ -162,6 +169,8 @@ onMounted(load)
             <div>
               <p class="text-xl font-bold text-ink">{{ profile.displayName }}</p>
               <p class="text-lg text-muted">{{ profile.approximateLocation }}</p>
+              <p v-if="profile.accountStatus === 'suspended'" class="text-lg font-bold text-danger">Compte suspendu</p>
+              <p v-else-if="profile.accountStatus === 'self_deleted'" class="text-lg font-bold text-muted">Compte supprimé par son propriétaire</p>
               <p v-if="profile.bio" class="max-w-xl text-lg text-ink">{{ profile.bio }}</p>
             </div>
           </div>
@@ -170,6 +179,12 @@ onMounted(load)
             <BaseButton v-if="active === 'blocked'" :loading="working" @click="unblock(profile)">Débloquer le profil</BaseButton>
             <BaseButton v-if="active === 'approved'" variant="danger" :disabled="working" @click="pending = { kind: 'block', target: profile }">
               Bloquer le profil
+            </BaseButton>
+            <BaseButton v-if="profile.accountStatus === 'active'" variant="secondary" :disabled="working" @click="pending = { kind: 'suspend', target: profile }">
+              Suspendre le compte
+            </BaseButton>
+            <BaseButton v-else-if="profile.accountStatus === 'suspended'" variant="secondary" :loading="working" @click="reactivate(profile)">
+              Réactiver le compte
             </BaseButton>
           </div>
         </li>
