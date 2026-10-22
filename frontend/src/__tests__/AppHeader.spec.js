@@ -44,6 +44,8 @@ describe('AppHeader', () => {
     useSessionStore().user = { id: 1, isAdmin: true }
     await flushPromises()
     expect(wrapper.text()).toContain('Modération')
+  })
+
   it('tient sur une seule ligne : liens principaux au centre, profil et déconnexion à droite', async () => {
     const wrapper = mountHeader()
     useSessionStore().user = { id: 1 }

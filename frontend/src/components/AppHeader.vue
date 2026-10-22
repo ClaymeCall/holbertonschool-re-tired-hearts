@@ -12,7 +12,7 @@ const session = useSessionStore()
 const router = useRouter()
 const unread = useUnreadStore()
 const route = useRoute()
-const { zoomed } = useTextZoom()
+const { active: zoomed } = useTextZoom() // agrandissement réellement appliqué à la page affichée
 
 // Sur mobile, la navigation est un menu déroulant ; sur grand écran, elle reste affichée en ligne.
 const menuOpen = ref(false)
