@@ -6,6 +6,7 @@ import { ApiError } from '../services/api'
 import * as profile from '../services/profile'
 
 vi.mock('../services/profile')
+vi.mock('../services/places', () => ({ searchPlaces: vi.fn().mockResolvedValue({ available: true, suggestions: [] }) }))
 
 const base = { displayName: 'Jeanne', bio: '', approximateLocation: 'Lyon', messagingEnabled: true }
 

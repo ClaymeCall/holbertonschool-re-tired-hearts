@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
+import CityField from '../components/CityField.vue'
 import FormField from '../components/FormField.vue'
 import SelectField from '../components/SelectField.vue'
 import { createEvent, getEvent, listInterests, updateEvent } from '../services/events'
@@ -124,7 +125,7 @@ onMounted(load)
           placeholder="Choisir…"
           :error="errors.mainInterestId"
         />
-        <FormField
+        <CityField
           id="approximateLocation"
           v-model="form.approximateLocation"
           label="Ville ou secteur"
