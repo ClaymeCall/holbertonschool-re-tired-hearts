@@ -133,6 +133,18 @@ describe('ModerationView', () => {
     expect(wrapper.text()).toContain('Sortie 3')
   })
 
+  it('pagine les listes de modération par 12 et revient à la première page après une recherche', async () => {
+    moderation.listProfilesByStatus.mockResolvedValue(Array.from({ length: 30 }, (_, i) => profile(i + 1, `Membre ${i + 1}`)))
+    await mountView()
+    expect(wrapper.findAll('article, li').filter((el) => el.text().includes('Approuver le profil'))).toHaveLength(12)
+    expect(wrapper.text()).toContain('Page 1 sur 3 · 30 résultats')
+    await wrapper.get('button[aria-label="Page 2"]').trigger('click')
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('2')
+    await wrapper.get('#mod-search').setValue('Membre 3')
+    expect(wrapper.find('nav[aria-label="Pagination"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Membre 3')
+  })
+
   it('débloque un profil bloqué', async () => {
     await mountView()
     await tab('bloqués').trigger('click')

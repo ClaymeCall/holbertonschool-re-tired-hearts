@@ -2,8 +2,10 @@
 import { computed, onMounted, ref } from 'vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
+import PaginationBar from '../components/PaginationBar.vue'
 import PersonPortrait from '../components/PersonPortrait.vue'
 import UnreadBadge from '../components/UnreadBadge.vue'
+import { usePagedList } from '../composables/usePagedList'
 import { usePolling } from '../composables/usePolling'
 import { listConversations } from '../services/conversations'
 import { listContacts } from '../services/people'
@@ -27,6 +29,9 @@ const rows = computed(() => {
   })
   return [...byId.values()].sort((a, b) => b.unread - a.unread || a.displayName.localeCompare(b.displayName, 'fr'))
 })
+
+const top = ref(null)
+const { page, totalPages, visible, goTo } = usePagedList(rows, { anchor: top })
 
 async function load({ quiet = false } = {}) {
   if (!quiet) loading.value = true
@@ -69,8 +74,8 @@ onMounted(load)
       <router-link :to="{ name: 'my-events' }" class="font-bold text-brand underline">vos sorties</router-link>.
     </p>
 
-    <ul v-else class="mt-6 divide-y divide-mist-deep rounded-lg border border-line bg-white">
-      <li v-for="person in rows" :key="person.id" class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <ul v-else ref="top" class="mt-6 divide-y divide-mist-deep rounded-lg border border-line bg-white">
+      <li v-for="person in visible" :key="person.id" class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-4">
           <PersonPortrait :name="person.displayName" :person-id="person.id" class="h-16 w-16 shrink-0 rounded-full" />
           <div>
@@ -87,5 +92,6 @@ onMounted(load)
         </BaseButton>
       </li>
     </ul>
+    <PaginationBar :page="page" :total-pages="totalPages" :total="rows.length" noun="contacts" @change="goTo" />
   </section>
 </template>

@@ -3,7 +3,9 @@ import { computed, onMounted, ref, watch } from 'vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import PaginationBar from '../components/PaginationBar.vue'
 import PersonAvatar from '../components/PersonAvatar.vue'
+import { usePagedList } from '../composables/usePagedList'
 import { listEvents } from '../services/events'
 import * as moderation from '../services/moderation'
 
@@ -55,6 +57,13 @@ async function listAllEvents() {
   }
   return all
 }
+
+const top = ref(null)
+const { page, totalPages, visible, goTo } = usePagedList(filtered, { anchor: top })
+// Une nouvelle recherche ou un autre onglet repart de la première page.
+watch([active, search], () => {
+  page.value = 1
+})
 
 async function load() {
   loading.value = true
@@ -192,7 +201,7 @@ onMounted(load)
       <AlertMessage v-if="feedback.text" :variant="feedback.type === 'success' ? 'success' : 'error'">{{ feedback.text }}</AlertMessage>
     </div>
 
-    <div :id="`panel-${active}`" role="tabpanel" :aria-labelledby="`tab-${active}`" class="mt-4">
+    <div ref="top" :id="`panel-${active}`" role="tabpanel" :aria-labelledby="`tab-${active}`" class="mt-4">
       <p v-if="loading" role="status" class="text-base text-muted">Chargement…</p>
 
       <div v-else-if="loadError">
@@ -206,7 +215,7 @@ onMounted(load)
 
       <!-- Profils -->
       <ul v-else-if="isProfileTab" class="divide-y divide-mist-deep rounded-lg border border-line bg-white">
-        <li v-for="profile in filtered" :key="profile.id" class="flex flex-col gap-3 p-3 lg:flex-row lg:items-center lg:justify-between">
+        <li v-for="profile in visible" :key="profile.id" class="flex flex-col gap-3 p-3 lg:flex-row lg:items-center lg:justify-between">
           <div class="flex items-center gap-4">
             <PersonAvatar :name="profile.displayName" />
             <div>
@@ -235,7 +244,7 @@ onMounted(load)
 
       <!-- Sorties publiées -->
       <ul v-else-if="active === 'events'" class="divide-y divide-mist-deep rounded-lg border border-line bg-white">
-        <li v-for="event in filtered" :key="event.id" class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <li v-for="event in visible" :key="event.id" class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p class="text-base font-bold text-ink">{{ event.title }}</p>
             <p class="text-sm text-muted">
@@ -248,7 +257,7 @@ onMounted(load)
 
       <!-- Historique -->
       <ul v-else class="divide-y divide-mist-deep rounded-lg border border-line bg-white">
-        <li v-for="entry in filtered" :key="entry.id" class="p-4">
+        <li v-for="entry in visible" :key="entry.id" class="p-4">
           <p class="text-base font-bold text-ink">{{ ACTION_LABELS[entry.action] ?? entry.action }}</p>
           <p class="text-sm text-muted">
             {{ TARGET_LABELS[entry.targetType] ?? entry.targetType }} n° {{ entry.targetId }} · par le modérateur n° {{ entry.moderatorId }} ·
@@ -257,6 +266,7 @@ onMounted(load)
           <p v-if="entry.reason" class="text-sm text-ink">Motif : {{ entry.reason }}</p>
         </li>
       </ul>
+      <PaginationBar :page="page" :total-pages="totalPages" :total="filtered.length" noun="résultats" @change="goTo" />
     </div>
 
     <ConfirmDialog

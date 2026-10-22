@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { usePagedList } from '../composables/usePagedList'
 import { useRoute } from 'vue-router'
 import AlertMessage from '../components/AlertMessage.vue'
 import BaseButton from '../components/BaseButton.vue'
+import PaginationBar from '../components/PaginationBar.vue'
 import PersonPortrait from '../components/PersonPortrait.vue'
 import { getEvent } from '../services/events'
 import { listParticipants } from '../services/participants'
@@ -13,6 +15,9 @@ const event = ref(null)
 const people = ref([])
 const loading = ref(true)
 const error = ref('')
+
+const top = ref(null)
+const { page, totalPages, visible, goTo } = usePagedList(people, { anchor: top })
 
 async function load() {
   loading.value = true
@@ -51,8 +56,8 @@ onMounted(load)
 
       <p v-if="people.length === 0" class="mt-6 rounded-lg bg-mist p-6 text-lg text-ink">Aucune autre personne n’était présente à cette sortie.</p>
 
-      <ul v-else class="mt-6 divide-y divide-mist-deep rounded-lg border border-line bg-white">
-        <li v-for="person in people" :key="person.id" class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <ul v-else ref="top" class="mt-6 divide-y divide-mist-deep rounded-lg border border-line bg-white">
+        <li v-for="person in visible" :key="person.id" class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex items-center gap-4">
             <PersonPortrait :name="person.displayName" :person-id="person.id" class="h-16 w-16 shrink-0 rounded-full" />
             <div>
@@ -65,6 +70,7 @@ onMounted(load)
           </BaseButton>
         </li>
       </ul>
+      <PaginationBar :page="page" :total-pages="totalPages" :total="people.length" noun="personnes" @change="goTo" />
     </template>
   </section>
 </template>

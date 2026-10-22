@@ -26,15 +26,38 @@ const top = ref(null)
 
 const totalPages = computed(() => totalPagesFor(total.value, LIMIT))
 
-// Pagination côté API : une page de 12 sorties à la fois (page et limit).
-async function load(target = 1) {
-  loading.value = true
+// Pagination côté API : une page de 12 sorties à la fois (page et limit). Seules la page affichée et les deux pages
+// voisines (celle d'avant, celle d'après) sont chargées : le changement de page est alors immédiat.
+const cache = new Map()
+let generation = 0
+
+async function fetchPage(target) {
+  if (cache.has(target)) return cache.get(target)
+  const current = generation
+  const result = await listEvents({ interest: filters.interest, location: filters.location, page: target, limit: LIMIT })
+  if (current === generation) cache.set(target, result) // un filtre a changé entre-temps : résultat périmé, on ne le garde pas
+  return result
+}
+
+function prefetchNeighbours(target, pages) {
+  for (const neighbour of [target - 1, target + 1]) {
+    if (neighbour >= 1 && neighbour <= pages && !cache.has(neighbour)) fetchPage(neighbour).catch(() => {})
+  }
+}
+
+async function load(target = 1, { fresh = false } = {}) {
+  if (fresh) {
+    generation += 1
+    cache.clear()
+  }
+  loading.value = !cache.has(target)
   error.value = ''
   try {
-    const result = await listEvents({ interest: filters.interest, location: filters.location, page: target, limit: LIMIT })
+    const result = await fetchPage(target)
     events.value = result.items
     total.value = result.total
     page.value = target
+    prefetchNeighbours(target, totalPagesFor(result.total, LIMIT))
   } catch {
     error.value = 'Impossible de charger les sorties pour le moment.'
   } finally {
@@ -47,7 +70,7 @@ async function load(target = 1) {
 function reset() {
   filters.interest = ''
   filters.location = ''
-  load(1)
+  load(1, { fresh: true })
 }
 
 onMounted(async () => {
@@ -67,7 +90,7 @@ onMounted(async () => {
       <BaseButton :to="{ name: 'event-new' }">Proposer une sortie</BaseButton>
     </div>
 
-    <form class="mt-6 grid gap-4 rounded-3xl border border-mist-deep bg-white p-6 md:grid-cols-[1fr_1fr_auto] md:items-end" @submit.prevent="load(1)">
+    <form class="mt-6 grid gap-4 rounded-3xl border border-mist-deep bg-white p-6 md:grid-cols-[1fr_1fr_auto] md:items-end" @submit.prevent="load(1, { fresh: true })">
       <SelectField id="filter-interest" v-model="filters.interest" label="Centre d’intérêt" :options="interests" placeholder="Tous les centres d’intérêt" />
       <CityField id="filter-location" v-model="filters.location" label="Ville ou secteur" />
       <div class="flex gap-3">
