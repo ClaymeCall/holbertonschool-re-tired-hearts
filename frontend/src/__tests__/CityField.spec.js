@@ -61,6 +61,18 @@ describe('CityField', () => {
     expect(input().attributes('aria-expanded')).toBe('false')
   })
 
+  it('ne rouvre pas la liste si on choisit une suggestion pendant qu\'un debounce est armé', async () => {
+    mountField()
+    await type('ly')
+    await input().setValue('lyo')
+    await wrapper.findAll('[role="option"]')[0].trigger('click')
+    await vi.advanceTimersByTimeAsync(350)
+    await flushPromises()
+    expect(places.searchPlaces).toHaveBeenCalledTimes(1)
+    expect(input().element.value).toBe('Lyon')
+    expect(input().attributes('aria-expanded')).toBe('false')
+  })
+
   it('se pilote au clavier : flèches, Entrée pour choisir, Échap pour fermer', async () => {
     mountField()
     await type('ly')

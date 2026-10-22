@@ -28,6 +28,8 @@ const fieldClasses =
   'mt-1 block min-h-14 w-full rounded-xl border-2 border-line bg-white px-4 py-2.5 text-lg text-ink placeholder:text-muted aria-[invalid=true]:border-danger focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2'
 
 function close() {
+  clearTimeout(timer)
+  lastRequest += 1 // ni debounce armé ni réponse en cours ne doivent rouvrir la liste
   open.value = false
   active.value = -1
 }
