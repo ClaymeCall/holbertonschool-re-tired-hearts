@@ -18,7 +18,9 @@
     "seed": "ts-node src/database/seed.ts",
     "test:integration": "jest --config test/jest-integration.json --runInBand",
     "demo:phase1": "bash scripts/demo-phase1-identity.sh",
-    "demo:phase3": "bash scripts/demo-phase3-messaging.sh"
+    "demo:phase2": "bash scripts/demo-phase2-events.sh",
+    "demo:phase3": "bash scripts/demo-phase3-messaging.sh",
+    "demo:phase4": "bash scripts/demo-phase4-security.sh"
 },
   "dependencies": {
     "@nestjs/common": "^10.4.4",
